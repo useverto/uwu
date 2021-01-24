@@ -1,0 +1,17 @@
+a := 1
+
+fn add(x, y)
+  x + y  
+end
+
+// Transpiles to:
+class Spec {
+    constructor(env) {
+        this.a = 1;
+    }
+
+    add(x, y) {
+        return x + y
+    }
+}
+
