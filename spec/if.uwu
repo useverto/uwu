@@ -1,0 +1,5 @@
+if(true):
+    print("This is reality.")
+else:
+    print("Wake up. This is a dream.")
+end

@@ -1,0 +1,8 @@
+let string = "multicharacter strings"
+let num = 1
+let arr = [s, i]
+let map = {
+    "key": "value"
+}
+
+
