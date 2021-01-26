@@ -1,4 +1,4 @@
-use crate::tokens::Number;
+pub use crate::tokens::Number;
 use std::fmt;
 
 // ******* AST ******* //
