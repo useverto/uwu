@@ -205,6 +205,16 @@ impl<'a> Lexer<'a> {
                 ch: literal.to_string(),
                 loc: start_pos,
             },
+            "true" => Node {
+                token: Token::Bool(true),
+                ch: literal.to_string(),
+                loc: start_pos,
+            },
+            "false" => Node {
+                token: Token::Bool(false),
+                ch: literal.to_string(),
+                loc: start_pos,
+            },
             _ => Node {
                 token: Token::Ident(String::from(literal)),
                 ch: literal.to_string(),
