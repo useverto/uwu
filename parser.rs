@@ -179,7 +179,7 @@ impl<'a> Parser<'a> {
 
         let mut block = vec![];
 
-        while !self.current_token_is(Token::Rbrace) && !self.current_token_is(Token::Eof) {
+        while !self.current_token_is(Token::End) && !self.current_token_is(Token::Eof) {
             match self.parse_stmt() {
                 Some(stmt) => block.push(stmt),
                 None => {}
@@ -213,6 +213,7 @@ impl<'a> Parser<'a> {
         // prefix
         let mut left = match self.current_token.token {
             Token::Ident(_) => self.parse_ident_expr(),
+            Token::Let => self.parse_let_expr(),
             Token::Number(_) => self.parse_int_expr(),
             Token::String(_) => self.parse_string_expr(),
             Token::Bool(_) => self.parse_bool_expr(),
@@ -305,6 +306,33 @@ impl<'a> Parser<'a> {
         Some(Expr::Let(name, Box::new(expr)))
     }
 
+    fn parse_let_expr(&mut self) -> Option<Expr> {
+        self.bump();
+
+        let name = match self.parse_ident() {
+            Some(name) => name,
+            None => return None,
+        };
+
+        self.bump();
+
+        match self.current_token.token {
+            Token::Assign => self.bump(),
+            _ => return self.parse_expr(Precedence::Lowest),
+        }
+
+        let expr = match self.parse_expr(Precedence::Lowest) {
+            Some(expr) => expr,
+            None => return None,
+        };
+
+        if self.next_token_is(&Token::Semicolon) {
+            self.bump();
+        }
+
+        Some(Expr::Let(name, Box::new(expr)))
+    }
+
     fn parse_func_expr(&mut self) -> Option<Expr> {
         self.bump();
 
@@ -318,19 +346,8 @@ impl<'a> Parser<'a> {
             Some(params) => params,
             None => return None,
         };
-        // Inline function declration
-        //
-        // `fn sqrt(x): x ^ 2`
-        if self.next_token_is(&Token::Colon) {
-            self.bump();
-            return Some(Expr::Func {
-                params,
-                body: self.parse_inline_stmt(),
-                name,
-            });
-        }
 
-        if !self.expect_next_token(Token::Lbrace) {
+        if !self.expect_next_token(Token::Colon) {
             return None;
         }
 
@@ -554,7 +571,7 @@ impl<'a> Parser<'a> {
             None => return None,
         };
 
-        if !self.expect_next_token(Token::Rparen) || !self.expect_next_token(Token::Lbrace) {
+        if !self.expect_next_token(Token::Rparen) || !self.expect_next_token(Token::Colon) {
             return None;
         }
 
@@ -564,7 +581,7 @@ impl<'a> Parser<'a> {
         if self.next_token_is(&Token::Else) {
             self.bump();
 
-            if !self.expect_next_token(Token::Lbrace) {
+            if !self.expect_next_token(Token::Colon) {
                 return None;
             }
 
@@ -590,7 +607,7 @@ impl<'a> Parser<'a> {
             None => return None,
         };
 
-        if !self.expect_next_token(Token::Rparen) || !self.expect_next_token(Token::Lbrace) {
+        if !self.expect_next_token(Token::Rparen) || !self.expect_next_token(Token::Colon) {
             return None;
         }
 

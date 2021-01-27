@@ -190,6 +190,11 @@ impl<'a> Lexer<'a> {
                 ch: literal.to_string(),
                 loc: start_pos,
             },
+            "let" => Node {
+                token: Token::Let,
+                ch: literal.to_string(),
+                loc: start_pos,
+            },
             "else" => Node {
                 token: Token::Else,
                 ch: literal.to_string(),

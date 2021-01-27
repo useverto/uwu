@@ -35,6 +35,7 @@ pub enum Token {
     If,
     Else,
     While,
+    Let,
 
     // Operators
     Plus,
