@@ -225,6 +225,11 @@ impl<'a> Lexer<'a> {
                 ch: literal.to_string(),
                 loc: start_pos,
             },
+            "return" => Node {
+                token: Token::Return,
+                ch: literal.to_string(),
+                loc: start_pos,
+            },
             _ => Node {
                 token: Token::Ident(String::from(literal)),
                 ch: literal.to_string(),

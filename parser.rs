@@ -193,8 +193,24 @@ impl<'a> Parser<'a> {
     fn parse_stmt(&mut self) -> Option<Stmt> {
         match self.current_token.token {
             Token::Blank => Some(Stmt::Blank),
+            Token::Return => self.parse_return_stmt(),
             _ => self.parse_expr_stmt(),
         }
+    }
+
+    fn parse_return_stmt(&mut self) -> Option<Stmt> {
+        self.bump();
+
+        let expr = match self.parse_expr(Precedence::Lowest) {
+            Some(expr) => expr,
+            None => return None,
+        };
+
+        if self.next_token_is(&Token::Semicolon) {
+            self.bump();
+        }
+
+        Some(Stmt::Return(expr))
     }
 
     fn parse_expr_stmt(&mut self) -> Option<Stmt> {

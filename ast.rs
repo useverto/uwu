@@ -98,6 +98,7 @@ pub enum Literal {
 pub enum Stmt {
     Blank,
     Expr(Expr),
+    Return(Expr),
 }
 
 pub type BlockStmt = Vec<Stmt>;
