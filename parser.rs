@@ -1,6 +1,6 @@
 use crate::ast::*;
 use crate::tokenizer::Lexer;
-use crate::tokens::{Node as Token, Number, Token as TokenLit};
+use crate::tokens::{Node, Number, Token};
 use std::fmt;
 
 /// Represents a kind of parser error
@@ -13,7 +13,7 @@ pub enum ParseErrorKind {
 impl fmt::Display for ParseErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ParseErrorKind::UnexpectedToken => write!(f, "Unexpected Token"),
+            ParseErrorKind::UnexpectedToken => write!(f, "Unexpected Node"),
         }
     }
 }
@@ -23,11 +23,11 @@ impl fmt::Display for ParseErrorKind {
 pub struct ParseError {
     pub kind: ParseErrorKind,
     pub msg: String,
-    pub current_token: Token,
+    pub current_token: Node,
 }
 
 impl ParseError {
-    fn new(kind: ParseErrorKind, msg: String, current_token: Token) -> Self {
+    fn new(kind: ParseErrorKind, msg: String, current_token: Node) -> Self {
         ParseError {
             kind,
             msg,
@@ -48,8 +48,8 @@ pub type ParseErrors = Vec<ParseError>;
 /// Represents an AST Parser
 pub struct Parser<'a> {
     pub lexer: Lexer<'a>,
-    pub current_token: Token,
-    pub next_token: Token,
+    pub current_token: Node,
+    pub next_token: Node,
     pub errors: ParseErrors,
 }
 
@@ -57,13 +57,13 @@ impl<'a> Parser<'a> {
     pub fn new(lexer: Lexer<'a>) -> Self {
         let mut parser = Parser {
             lexer,
-            current_token: Token {
-                token: TokenLit::Eof,
+            current_token: Node {
+                token: Token::Eof,
                 ch: "".to_string(),
                 loc: 0,
             },
-            next_token: Token {
-                token: TokenLit::Eof,
+            next_token: Node {
+                token: Token::Eof,
                 ch: "".to_string(),
                 loc: 0,
             },
@@ -76,17 +76,16 @@ impl<'a> Parser<'a> {
         parser
     }
 
-    fn token_to_precedence(tok: &Token) -> Precedence {
+    fn token_to_precedence(tok: &Node) -> Precedence {
         match tok.token {
-            TokenLit::Equal | TokenLit::NotEqual => Precedence::Equals,
-            TokenLit::LessThan | TokenLit::LessThanEqual => Precedence::LessGreater,
-            TokenLit::GreaterThan | TokenLit::GreaterThanEqual => Precedence::LessGreater,
-            TokenLit::Plus | TokenLit::Minus => Precedence::Sum,
-            TokenLit::Slash | TokenLit::Asterisk => Precedence::Product,
-            // FIXME: implement precendence for modulo & pow
-            TokenLit::Caret | TokenLit::Percent => Precedence::Sum,
-            TokenLit::Lbracket => Precedence::Index,
-            TokenLit::Lparen => Precedence::Call,
+            Token::Equal | Token::NotEqual => Precedence::Equals,
+            Token::LessThan | Token::LessThanEqual => Precedence::LessGreater,
+            Token::GreaterThan | Token::GreaterThanEqual => Precedence::LessGreater,
+            Token::Plus | Token::Minus => Precedence::Sum,
+            Token::Slash | Token::Asterisk => Precedence::Product,
+            Token::Caret | Token::Percent => Precedence::Sum,
+            Token::Lbracket => Precedence::Index,
+            Token::Lparen => Precedence::Call,
             _ => Precedence::Lowest,
         }
     }
@@ -100,16 +99,16 @@ impl<'a> Parser<'a> {
         self.next_token = self.lexer.next_token();
     }
 
-    fn current_token_is(&mut self, tok: TokenLit) -> bool {
+    fn current_token_is(&mut self, tok: Token) -> bool {
         self.current_token.token == tok
     }
 
-    fn next_token_is(&mut self, tok: &TokenLit) -> bool {
+    fn next_token_is(&mut self, tok: &Token) -> bool {
         self.next_token.token == *tok
     }
 
-    fn expect_next_token(&mut self, tok: TokenLit) -> bool {
-        if self.next_token_is(&tok) || self.next_token_is(&TokenLit::Blank) {
+    fn expect_next_token(&mut self, tok: Token) -> bool {
+        if self.next_token_is(&tok) || self.next_token_is(&Token::Blank) {
             self.bump();
             return true;
         } else {
@@ -126,7 +125,7 @@ impl<'a> Parser<'a> {
         Self::token_to_precedence(&self.next_token)
     }
 
-    fn error_next_token(&mut self, tok: TokenLit) {
+    fn error_next_token(&mut self, tok: Token) {
         self.errors.push(ParseError::new(
             ParseErrorKind::UnexpectedToken,
             format!(
@@ -148,7 +147,7 @@ impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Program {
         let mut program: Program = vec![];
 
-        while !self.current_token_is(TokenLit::Eof) {
+        while !self.current_token_is(Token::Eof) {
             match self.parse_stmt() {
                 Some(stmt) => program.push(stmt),
                 None => {}
@@ -164,7 +163,7 @@ impl<'a> Parser<'a> {
 
         let mut block = vec![];
 
-        while !self.current_token_is(TokenLit::Blank) && !self.current_token_is(TokenLit::Eof) {
+        while !self.current_token_is(Token::Blank) && !self.current_token_is(Token::Eof) {
             match self.parse_stmt() {
                 Some(stmt) => block.push(stmt),
                 None => {}
@@ -180,7 +179,7 @@ impl<'a> Parser<'a> {
 
         let mut block = vec![];
 
-        while !self.current_token_is(TokenLit::Rbrace) && !self.current_token_is(TokenLit::Eof) {
+        while !self.current_token_is(Token::Rbrace) && !self.current_token_is(Token::Eof) {
             match self.parse_stmt() {
                 Some(stmt) => block.push(stmt),
                 None => {}
@@ -193,7 +192,7 @@ impl<'a> Parser<'a> {
 
     fn parse_stmt(&mut self) -> Option<Stmt> {
         match self.current_token.token {
-            TokenLit::Blank => Some(Stmt::Blank),
+            Token::Blank => Some(Stmt::Blank),
             _ => self.parse_expr_stmt(),
         }
     }
@@ -201,7 +200,7 @@ impl<'a> Parser<'a> {
     fn parse_expr_stmt(&mut self) -> Option<Stmt> {
         match self.parse_expr(Precedence::Lowest) {
             Some(expr) => {
-                if self.next_token_is(&TokenLit::Semicolon) {
+                if self.next_token_is(&Token::Semicolon) {
                     self.bump();
                 }
                 Some(Stmt::Expr(expr))
@@ -213,22 +212,20 @@ impl<'a> Parser<'a> {
     fn parse_expr(&mut self, precedence: Precedence) -> Option<Expr> {
         // prefix
         let mut left = match self.current_token.token {
-            TokenLit::Ident(_) => self.parse_ident_expr(),
-            TokenLit::Number(_) => self.parse_int_expr(),
-            TokenLit::String(_) => self.parse_string_expr(),
-            TokenLit::Bool(_) => self.parse_bool_expr(),
-            TokenLit::Lbracket => self.parse_array_expr(),
-            TokenLit::Lbrace => self.parse_hash_expr(),
-            TokenLit::Percent
-            | TokenLit::Caret
-            | TokenLit::Bang
-            | TokenLit::Minus
-            | TokenLit::Plus => self.parse_prefix_expr(),
-            TokenLit::Lparen => self.parse_grouped_expr(),
-            TokenLit::If => self.parse_if_expr(),
-            TokenLit::While => self.parse_while_expr(),
-            TokenLit::Func => self.parse_func_expr(),
-            TokenLit::Blank => {
+            Token::Ident(_) => self.parse_ident_expr(),
+            Token::Number(_) => self.parse_int_expr(),
+            Token::String(_) => self.parse_string_expr(),
+            Token::Bool(_) => self.parse_bool_expr(),
+            Token::Lbracket => self.parse_array_expr(),
+            Token::Lbrace => self.parse_hash_expr(),
+            Token::Percent | Token::Caret | Token::Bang | Token::Minus | Token::Plus => {
+                self.parse_prefix_expr()
+            }
+            Token::Lparen => self.parse_grouped_expr(),
+            Token::If => self.parse_if_expr(),
+            Token::While => self.parse_while_expr(),
+            Token::Func => self.parse_func_expr(),
+            Token::Blank => {
                 self.bump();
                 return self.parse_expr(Precedence::Lowest);
             }
@@ -238,29 +235,28 @@ impl<'a> Parser<'a> {
             }
         };
 
-        while !self.next_token_is(&TokenLit::Semicolon) && precedence < self.next_token_precedence()
-        {
+        while !self.next_token_is(&Token::Semicolon) && precedence < self.next_token_precedence() {
             match self.next_token.token {
-                TokenLit::Plus
-                | TokenLit::Minus
-                | TokenLit::Slash
-                | TokenLit::Asterisk
-                | TokenLit::Caret
-                | TokenLit::Percent
-                | TokenLit::Equal
-                | TokenLit::NotEqual
-                | TokenLit::LessThan
-                | TokenLit::LessThanEqual
-                | TokenLit::GreaterThan
-                | TokenLit::GreaterThanEqual => {
+                Token::Plus
+                | Token::Minus
+                | Token::Slash
+                | Token::Asterisk
+                | Token::Caret
+                | Token::Percent
+                | Token::Equal
+                | Token::NotEqual
+                | Token::LessThan
+                | Token::LessThanEqual
+                | Token::GreaterThan
+                | Token::GreaterThanEqual => {
                     self.bump();
                     left = self.parse_infix_expr(left.unwrap());
                 }
-                TokenLit::Lbracket => {
+                Token::Lbracket => {
                     self.bump();
                     left = self.parse_index_expr(left.unwrap());
                 }
-                TokenLit::Lparen => {
+                Token::Lparen => {
                     self.bump();
                     left = self.parse_call_expr(left.unwrap());
                 }
@@ -273,13 +269,13 @@ impl<'a> Parser<'a> {
 
     fn parse_ident(&mut self) -> Option<Ident> {
         match self.current_token.token {
-            TokenLit::Ident(ref mut ident) => Some(Ident(ident.clone())),
+            Token::Ident(ref mut ident) => Some(Ident(ident.clone())),
             _ => None,
         }
     }
 
     fn parse_ident_expr(&mut self) -> Option<Expr> {
-        if !self.next_token_is(&TokenLit::Assign) {
+        if !self.next_token_is(&Token::Assign) {
             match self.parse_ident() {
                 Some(ident) => return Some(Expr::Ident(ident)),
                 None => return None,
@@ -293,7 +289,7 @@ impl<'a> Parser<'a> {
         self.bump();
 
         match self.current_token.token {
-            TokenLit::Assign => self.bump(),
+            Token::Assign => self.bump(),
             _ => return self.parse_expr(Precedence::Lowest),
         }
 
@@ -302,7 +298,7 @@ impl<'a> Parser<'a> {
             None => return None,
         };
 
-        if self.next_token_is(&TokenLit::Semicolon) {
+        if self.next_token_is(&Token::Semicolon) {
             self.bump();
         }
 
@@ -314,7 +310,7 @@ impl<'a> Parser<'a> {
 
         let name = self.parse_ident();
 
-        if !self.expect_next_token(TokenLit::Lparen) {
+        if !self.expect_next_token(Token::Lparen) {
             return None;
         }
 
@@ -325,7 +321,7 @@ impl<'a> Parser<'a> {
         // Inline function declration
         //
         // `fn sqrt(x): x ^ 2`
-        if self.next_token_is(&TokenLit::Colon) {
+        if self.next_token_is(&Token::Colon) {
             self.bump();
             return Some(Expr::Func {
                 params,
@@ -334,7 +330,7 @@ impl<'a> Parser<'a> {
             });
         }
 
-        if !self.expect_next_token(TokenLit::Lbrace) {
+        if !self.expect_next_token(Token::Lbrace) {
             return None;
         }
 
@@ -348,7 +344,7 @@ impl<'a> Parser<'a> {
     fn parse_func_params(&mut self) -> Option<Vec<Ident>> {
         let mut params = vec![];
 
-        if self.next_token_is(&TokenLit::Rparen) {
+        if self.next_token_is(&Token::Rparen) {
             self.bump();
             return Some(params);
         }
@@ -360,7 +356,7 @@ impl<'a> Parser<'a> {
             None => return None,
         };
 
-        while self.next_token_is(&TokenLit::Comma) {
+        while self.next_token_is(&Token::Comma) {
             self.bump();
             self.bump();
 
@@ -370,7 +366,7 @@ impl<'a> Parser<'a> {
             };
         }
 
-        if !self.expect_next_token(TokenLit::Rparen) {
+        if !self.expect_next_token(Token::Rparen) {
             return None;
         }
 
@@ -379,7 +375,7 @@ impl<'a> Parser<'a> {
 
     fn parse_int_expr(&mut self) -> Option<Expr> {
         match self.current_token.token {
-            TokenLit::Number(ref int) => match int {
+            Token::Number(ref int) => match int {
                 Number::Int(i) => Some(Expr::Literal(Literal::Number(Number::Int(i.clone())))),
                 Number::Float(i) => Some(Expr::Literal(Literal::Number(Number::Float(i.clone())))),
             },
@@ -389,20 +385,20 @@ impl<'a> Parser<'a> {
 
     fn parse_string_expr(&mut self) -> Option<Expr> {
         match self.current_token.token {
-            TokenLit::String(ref mut s) => Some(Expr::Literal(Literal::String(s.clone()))),
+            Token::String(ref mut s) => Some(Expr::Literal(Literal::String(s.clone()))),
             _ => None,
         }
     }
 
     fn parse_bool_expr(&mut self) -> Option<Expr> {
         match self.current_token.token {
-            TokenLit::Bool(value) => Some(Expr::Literal(Literal::Bool(value == true))),
+            Token::Bool(value) => Some(Expr::Literal(Literal::Bool(value == true))),
             _ => None,
         }
     }
 
     fn parse_array_expr(&mut self) -> Option<Expr> {
-        match self.parse_expr_list(TokenLit::Rbracket) {
+        match self.parse_expr_list(Token::Rbracket) {
             Some(list) => Some(Expr::Literal(Literal::Array(list))),
             None => None,
         }
@@ -411,7 +407,7 @@ impl<'a> Parser<'a> {
     fn parse_hash_expr(&mut self) -> Option<Expr> {
         let mut pairs = Vec::new();
 
-        while !self.next_token_is(&TokenLit::Rbrace) {
+        while !self.next_token_is(&Token::Rbrace) {
             self.bump();
 
             let key = match self.parse_expr(Precedence::Lowest) {
@@ -419,7 +415,7 @@ impl<'a> Parser<'a> {
                 None => return None,
             };
 
-            if !self.expect_next_token(TokenLit::Colon) {
+            if !self.expect_next_token(Token::Colon) {
                 return None;
             }
 
@@ -432,19 +428,19 @@ impl<'a> Parser<'a> {
 
             pairs.push((key, value));
 
-            if !self.next_token_is(&TokenLit::Rbrace) && !self.expect_next_token(TokenLit::Comma) {
+            if !self.next_token_is(&Token::Rbrace) && !self.expect_next_token(Token::Comma) {
                 return None;
             }
         }
 
-        if !self.expect_next_token(TokenLit::Rbrace) {
+        if !self.expect_next_token(Token::Rbrace) {
             return None;
         }
 
         Some(Expr::Literal(Literal::Hash(pairs)))
     }
 
-    fn parse_expr_list(&mut self, end: TokenLit) -> Option<Vec<Expr>> {
+    fn parse_expr_list(&mut self, end: Token) -> Option<Vec<Expr>> {
         let mut list = vec![];
 
         if self.next_token_is(&end) {
@@ -459,7 +455,7 @@ impl<'a> Parser<'a> {
             None => return None,
         }
 
-        while self.next_token_is(&TokenLit::Comma) {
+        while self.next_token_is(&Token::Comma) {
             self.bump();
             self.bump();
 
@@ -478,9 +474,9 @@ impl<'a> Parser<'a> {
 
     fn parse_prefix_expr(&mut self) -> Option<Expr> {
         let prefix = match self.current_token.token {
-            TokenLit::Bang => Prefix::Not,
-            TokenLit::Minus => Prefix::Minus,
-            TokenLit::Plus => Prefix::Plus,
+            Token::Bang => Prefix::Not,
+            Token::Minus => Prefix::Minus,
+            Token::Plus => Prefix::Plus,
             _ => return None,
         };
 
@@ -494,18 +490,18 @@ impl<'a> Parser<'a> {
 
     fn parse_infix_expr(&mut self, left: Expr) -> Option<Expr> {
         let infix = match self.current_token.token {
-            TokenLit::Plus => Infix::Plus,
-            TokenLit::Minus => Infix::Minus,
-            TokenLit::Slash => Infix::Divide,
-            TokenLit::Asterisk => Infix::Multiply,
-            TokenLit::Equal => Infix::Equal,
-            TokenLit::NotEqual => Infix::NotEqual,
-            TokenLit::LessThan => Infix::LessThan,
-            TokenLit::LessThanEqual => Infix::LessThanEqual,
-            TokenLit::GreaterThan => Infix::GreaterThan,
-            TokenLit::GreaterThanEqual => Infix::GreaterThanEqual,
-            TokenLit::Caret => Infix::Power,
-            TokenLit::Percent => Infix::Modulo,
+            Token::Plus => Infix::Plus,
+            Token::Minus => Infix::Minus,
+            Token::Slash => Infix::Divide,
+            Token::Asterisk => Infix::Multiply,
+            Token::Equal => Infix::Equal,
+            Token::NotEqual => Infix::NotEqual,
+            Token::LessThan => Infix::LessThan,
+            Token::LessThanEqual => Infix::LessThanEqual,
+            Token::GreaterThan => Infix::GreaterThan,
+            Token::GreaterThanEqual => Infix::GreaterThanEqual,
+            Token::Caret => Infix::Power,
+            Token::Percent => Infix::Modulo,
             _ => return None,
         };
 
@@ -527,7 +523,7 @@ impl<'a> Parser<'a> {
             None => return None,
         };
 
-        if !self.expect_next_token(TokenLit::Rbracket) {
+        if !self.expect_next_token(Token::Rbracket) {
             return None;
         }
 
@@ -539,7 +535,7 @@ impl<'a> Parser<'a> {
 
         let expr = self.parse_expr(Precedence::Lowest);
 
-        if !self.expect_next_token(TokenLit::Rparen) {
+        if !self.expect_next_token(Token::Rparen) {
             None
         } else {
             expr
@@ -547,7 +543,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_if_expr(&mut self) -> Option<Expr> {
-        if !self.expect_next_token(TokenLit::Lparen) {
+        if !self.expect_next_token(Token::Lparen) {
             return None;
         }
 
@@ -558,17 +554,17 @@ impl<'a> Parser<'a> {
             None => return None,
         };
 
-        if !self.expect_next_token(TokenLit::Rparen) || !self.expect_next_token(TokenLit::Lbrace) {
+        if !self.expect_next_token(Token::Rparen) || !self.expect_next_token(Token::Lbrace) {
             return None;
         }
 
         let consequence = self.parse_block_stmt();
         let mut alternative = None;
 
-        if self.next_token_is(&TokenLit::Else) {
+        if self.next_token_is(&Token::Else) {
             self.bump();
 
-            if !self.expect_next_token(TokenLit::Lbrace) {
+            if !self.expect_next_token(Token::Lbrace) {
                 return None;
             }
 
@@ -583,7 +579,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_while_expr(&mut self) -> Option<Expr> {
-        if !self.expect_next_token(TokenLit::Lparen) {
+        if !self.expect_next_token(Token::Lparen) {
             return None;
         }
 
@@ -594,7 +590,7 @@ impl<'a> Parser<'a> {
             None => return None,
         };
 
-        if !self.expect_next_token(TokenLit::Rparen) || !self.expect_next_token(TokenLit::Lbrace) {
+        if !self.expect_next_token(Token::Rparen) || !self.expect_next_token(Token::Lbrace) {
             return None;
         }
 
@@ -607,7 +603,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_call_expr(&mut self, func: Expr) -> Option<Expr> {
-        let args = match self.parse_expr_list(TokenLit::Rparen) {
+        let args = match self.parse_expr_list(Token::Rparen) {
             Some(args) => args,
             None => return None,
         };

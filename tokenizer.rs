@@ -215,6 +215,11 @@ impl<'a> Lexer<'a> {
                 ch: literal.to_string(),
                 loc: start_pos,
             },
+            "end" => Node {
+                token: Token::End,
+                ch: literal.to_string(),
+                loc: start_pos,
+            },
             _ => Node {
                 token: Token::Ident(String::from(literal)),
                 ch: literal.to_string(),

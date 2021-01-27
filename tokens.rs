@@ -64,4 +64,5 @@ pub enum Token {
     Rbracket,
 
     Func,
+    End,
 }
