@@ -156,7 +156,10 @@ impl<'a> Lexer<'a> {
             b'"' => {
                 return self.consume_string();
             }
-            b'\n' => ctok!(self, Token::Blank),
+            b'\n' => {
+                self.read_char();
+                return self.next_token();
+            }
             b'#' => {
                 self.skip_comments();
                 return self.next_token();

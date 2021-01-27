@@ -11,3 +11,7 @@ edition = "2018"
 [lib]
 name = "uwu"
 path = "lib.rs"
+
+[[bin]]
+name = "uc"
+path = "uc/main.rs"

@@ -9,7 +9,6 @@ pub enum ParseErrorKind {
     UnexpectedToken,
 }
 
-// TODO: Lots of optimizations pending...
 impl fmt::Display for ParseErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -156,22 +155,6 @@ impl<'a> Parser<'a> {
         }
 
         program
-    }
-
-    fn parse_inline_stmt(&mut self) -> BlockStmt {
-        self.bump();
-
-        let mut block = vec![];
-
-        while !self.current_token_is(Token::Blank) && !self.current_token_is(Token::Eof) {
-            match self.parse_stmt() {
-                Some(stmt) => block.push(stmt),
-                None => {}
-            }
-            self.bump();
-        }
-
-        block
     }
 
     fn parse_block_stmt(&mut self) -> BlockStmt {
@@ -593,7 +576,6 @@ impl<'a> Parser<'a> {
 
         let consequence = self.parse_block_stmt();
         let mut alternative = None;
-
         if self.next_token_is(&Token::Else) {
             self.bump();
 

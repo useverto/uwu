@@ -1,5 +1,5 @@
 mod ast;
-mod compiler;
-mod parser;
-mod tokenizer;
+pub mod compiler;
+pub mod parser;
+pub mod tokenizer;
 mod tokens;
