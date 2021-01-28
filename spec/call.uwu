@@ -1,4 +1,4 @@
-a = 0
+let a = 0
 fn update():
   a = a + 1
 end
