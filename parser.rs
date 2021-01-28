@@ -578,11 +578,24 @@ impl<'a> Parser<'a> {
         if !self.expect_next_token(Token::Rparen) || !self.expect_next_token(Token::Colon) {
             return None;
         }
+        self.bump();
 
-        let consequence = self.parse_block_stmt();
-        let mut alternative = None;
-        if self.next_token_is(&Token::Else) {
+        let mut consequence = vec![];
+
+        while !self.current_token_is(Token::End)
+            && !self.current_token_is(Token::Else)
+            && !self.current_token_is(Token::Eof)
+        {
+            match self.parse_stmt() {
+                Some(stmt) => consequence.push(stmt),
+                None => {}
+            }
             self.bump();
+        }
+
+        let mut alternative = None;
+        if self.current_token_is(Token::Else) {
+            // self.bump();
 
             if !self.expect_next_token(Token::Colon) {
                 return None;

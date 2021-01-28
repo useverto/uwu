@@ -1,6 +1,9 @@
+fn print(str):
+    # do nothing
+end
+
 if(true):
     print("This is reality.")
-end
 else:
     print("Wake up. This is a dream.")
 end
