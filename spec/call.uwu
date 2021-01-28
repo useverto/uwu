@@ -1,0 +1,8 @@
+a = 0
+fn update():
+  a = a + 1
+end
+
+update()
+update()
+update()

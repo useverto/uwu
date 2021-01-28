@@ -257,8 +257,13 @@ impl<'a> Parser<'a> {
                     left = self.parse_index_expr(left.unwrap());
                 }
                 Token::Lparen => {
+                    let l = left.clone().unwrap();
                     self.bump();
-                    left = self.parse_call_expr(left.unwrap());
+                    if let Expr::Ident(_) = l {
+                        left = self.parse_call_expr(l);
+                    } else {
+                        self.error_next_token(Token::Lparen);
+                    }
                 }
                 _ => return left,
             }
