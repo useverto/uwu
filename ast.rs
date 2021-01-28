@@ -61,6 +61,7 @@ impl fmt::Display for Infix {
 pub enum Expr {
     Ident(Ident),
     Let(Ident, Box<Expr>),
+    Assign(Ident, Box<Expr>),
     Literal(Literal),
     Prefix(Prefix, Box<Expr>),
     Infix(Infix, Box<Expr>, Box<Expr>),
