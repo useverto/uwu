@@ -307,7 +307,7 @@ impl<'a> Parser<'a> {
             self.bump();
         }
 
-        Some(Expr::Let(name, Box::new(expr)))
+        Some(Expr::Assign(name, Box::new(expr)))
     }
 
     fn parse_let_expr(&mut self) -> Option<Expr> {
