@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! create {
+macro_rules! create_diagnostic {
     ($src: expr, $code: expr, $span: expr, $err: expr, $hint: expr) => {
         format!(
             r#"
@@ -15,7 +15,7 @@ error[ERRCODE]: {err}
             err = $err,
             hint = $hint,
             code = $code,
-            underline = crate::diagnostics::underline($span[1]),
+            underline = $crate::diagnostics::underline($span[1]),
         )
     };
 }
@@ -30,12 +30,12 @@ pub fn underline(col: usize) -> String {
 
 #[cfg(test)]
 mod diagnostics_test {
-    use crate::create;
+    use crate::create_diagnostic;
 
     #[test]
     fn test_minimal_create() {
         assert_eq!(
-            create!(
+            create_diagnostic!(
                 "test.uwu",
                 "window",
                 [2, 2],

@@ -12,7 +12,7 @@ pub enum ParseErrorKind {
 impl fmt::Display for ParseErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ParseErrorKind::UnexpectedToken => write!(f, "Unexpected Node"),
+            ParseErrorKind::UnexpectedToken => write!(f, "Unexpected Token"),
         }
     }
 }
@@ -128,8 +128,8 @@ impl<'a> Parser<'a> {
         self.errors.push(ParseError::new(
             ParseErrorKind::UnexpectedToken,
             format!(
-                "expected {:?}, got {:?} instead",
-                tok, self.next_token.token
+                "Unexpected `{:?}`, expected `{:?}` instead",
+                self.next_token.token, tok
             ),
             self.current_token.clone(),
         ));
