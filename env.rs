@@ -1,19 +1,47 @@
+use std::collections::HashMap;
+
+use crate::{ast::Literal, ltype, types::Type};
+
 pub struct Env {
     function_store: Vec<String>,
+    type_store: HashMap<String, Type>,
 }
 
 impl Env {
     pub fn new() -> Self {
         Self {
-            function_store: Vec::new(),
+            function_store: vec![],
+            type_store: HashMap::new(),
         }
     }
 
-    pub fn add(&mut self, id: String) {
+    pub fn add_fn(&mut self, id: String) {
         self.function_store.push(id);
     }
 
-    pub fn has(&mut self, id: String) -> bool {
+    pub fn has_fn(&mut self, id: String) -> bool {
         self.function_store.contains(&id)
+    }
+
+    pub fn addt(&mut self, id: String, t: &Literal) {
+        self.type_store.insert(id, ltype!(t));
+    }
+
+    pub fn sett(&mut self, id: String, t: Type) {
+        self.type_store.insert(id, t);
+    }
+
+    pub fn checkt(&mut self, id: String, t: &Type) -> bool {
+        match self.type_store.get(&id) {
+            Some(t2) => t2 == t,
+            None => false,
+        }
+    }
+
+    pub fn gett(&mut self, id: String) -> &Type {
+        match self.type_store.get(&id) {
+            Some(t) => t,
+            None => &Type::Unknown,
+        }
     }
 }

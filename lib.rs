@@ -5,3 +5,4 @@ mod env;
 pub mod parser;
 pub mod tokenizer;
 mod tokens;
+mod types;

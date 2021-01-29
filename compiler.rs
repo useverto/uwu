@@ -1,7 +1,11 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::ast::{BlockStmt, Expr, Ident, Literal, Number, Program, Stmt};
 use crate::env::Env;
+use crate::{
+    ast::{BlockStmt, Expr, Ident, Literal, Number, Program, Stmt},
+    ltype,
+    types::Type,
+};
 /// A compiler will hold the AST of the input source.
 pub struct Compiler {
     ast: Program,
@@ -72,6 +76,11 @@ impl Compiler {
                     None => return None,
                 };
                 let Ident(name) = ident;
+                if let Expr::Literal(e) = expr.as_ref() {
+                    self.scope.borrow_mut().addt(name.into(), e);
+                } else {
+                    self.scope.borrow_mut().sett(name.into(), Type::Unknown);
+                }
                 source.push_str(&format!("let {} = {}; \n", name, value));
             }
             Expr::Assign(ident, expr) => {
@@ -80,6 +89,14 @@ impl Compiler {
                     None => return None,
                 };
                 let Ident(name) = ident;
+                if let Expr::Literal(e) = expr.as_ref() {
+                    let mut b = self.scope.borrow_mut();
+                    if !b.checkt(name.into(), &ltype!(e)) {
+                        panic!("Invalid types")
+                    }
+                } else {
+                    self.scope.borrow_mut().sett(name.into(), Type::Unknown);
+                }
                 source.push_str(&format!("{} = {}; \n", name, value));
             }
             Expr::Prefix(prefix, expr) => {
@@ -116,7 +133,7 @@ impl Compiler {
                     source.push_str("function ");
                     source.push_str(ident);
                     source.push_str("(");
-                    self.scope.borrow_mut().add(ident.into());
+                    self.scope.borrow_mut().add_fn(ident.into());
                     for (i, param) in params.iter().enumerate() {
                         let Ident(n) = param;
                         source.push_str(n);
@@ -132,7 +149,7 @@ impl Compiler {
             }
             Expr::Call { func, args } => {
                 let function = &self.compile_expr(func)?;
-                if !self.scope.borrow_mut().has(function.into()) {
+                if !self.scope.borrow_mut().has_fn(function.into()) {
                     return None;
                 };
                 source.push_str(function);
