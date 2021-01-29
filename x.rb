@@ -70,6 +70,7 @@ subtext = <<HELP
 Commonly used command are:
    wasm :     build wasm
    cli  :     build CLI
+   test :     run `cargo test`
 See 'x.rb COMMAND --help' for more information on a specific command.
 HELP
 
@@ -92,8 +93,11 @@ subcommands = {
    'cli' => OptionParser.new do |opts|
         opts.banner = "Usage: cli [options]"
         opts.on("-d", "--debug", "Build debug builds") do |v|
-        options[:debug] = v
+          options[:debug] = v
         end
+    end,
+    'test' => OptionParser.new do |opts|
+      opts.banner = "Usage: test [options]"
     end,
  }
 
@@ -116,11 +120,17 @@ def build_cli
     exec_cmd("cargo build", ".")
 end
 
+def run_tests
+  exec_cmd("cargo test", ".")
+end
+
 case command
 when "wasm"
   build_wasm()
 when "cli"
   build_cli()
+when "test"
+  run_tests()
 else 
   STDERR.puts "ERROR: no subcommand"
   STDERR.puts global # prints usage
