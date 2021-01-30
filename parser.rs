@@ -706,6 +706,12 @@ mod parser_tests {
         };
     }
 
+    macro_rules! array {
+        ($e: expr) => {
+            Expr::Literal(Literal::Array($e))
+        };
+    }
+
     #[test]
     fn test_numbers() {
         assert_eq!(parse("1").unwrap(), vec![stmt!(literal!(int!(1)))]);
@@ -759,6 +765,19 @@ mod parser_tests {
         assert_eq!(
             parse("false").unwrap(),
             vec![stmt!(literal!(boolean!(false)))]
+        );
+    }
+
+    #[test]
+    fn test_array() {
+        assert_eq!(
+            parse("[451, 2.9, false, \"hi!\"]").unwrap(),
+            vec![stmt!(array!(vec![
+                literal!(int!(451)),
+                literal!(double!(2.9)),
+                literal!(boolean!(false)),
+                literal!(string!("hi!"))
+            ]))]
         );
     }
 }
