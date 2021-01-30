@@ -647,3 +647,64 @@ impl<'a> Parser<'a> {
         })
     }
 }
+
+#[cfg(test)]
+mod parser_tests {
+    use super::ParseError;
+    use super::Parser;
+    use crate::{ast::*, tokenizer::Lexer};
+
+    fn parse(i: &str) -> Result<Program, Vec<ParseError>> {
+        let mut p = Parser::new(Lexer::new(i));
+        let ast = p.parse();
+        let errors = p.get_errors();
+        if errors.len() > 0 {
+            return Err(errors);
+        }
+        Ok(ast)
+    }
+
+    macro_rules! stmt {
+        ($e: expr) => {
+            Stmt::Expr($e)
+        };
+    }
+
+    macro_rules! literal {
+        ($e: expr) => {
+            Expr::Literal($e)
+        };
+    }
+
+    macro_rules! int {
+        ($e: expr) => {
+            Literal::Number(Number::Int($e))
+        };
+    }
+
+    macro_rules! double {
+        ($e: expr) => {
+            Literal::Number(Number::Float($e))
+        };
+    }
+
+    macro_rules! minus {
+        ($e: expr) => {
+            Stmt::Expr(Expr::Prefix(Prefix::Minus, Box::new($e)))
+        };
+    }
+    #[test]
+    fn test_numbers() {
+        assert_eq!(parse("1").unwrap(), vec![stmt!(literal!(int!(1)))]);
+        assert_eq!(parse("-20").unwrap(), vec![minus!(literal!(int!(20)))]);
+        assert_eq!(parse("1.2").unwrap(), vec![stmt!(literal!(double!(1.2)))]);
+        assert_eq!(
+            parse("-9.969").unwrap(),
+            vec![minus!(literal!(double!(9.969)))]
+        );
+        assert_eq!(
+            parse("0.00000000000000001").unwrap(),
+            vec![stmt!(literal!(double!(0.00000000000000001)))]
+        );
+    }
+}
