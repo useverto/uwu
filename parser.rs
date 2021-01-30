@@ -647,3 +647,137 @@ impl<'a> Parser<'a> {
         })
     }
 }
+
+#[cfg(test)]
+mod parser_tests {
+    use super::ParseError;
+    use super::Parser;
+    use crate::{ast::*, tokenizer::Lexer};
+
+    fn parse(i: &str) -> Result<Program, Vec<ParseError>> {
+        let mut p = Parser::new(Lexer::new(i));
+        let ast = p.parse();
+        let errors = p.get_errors();
+        if errors.len() > 0 {
+            return Err(errors);
+        }
+        Ok(ast)
+    }
+
+    macro_rules! stmt {
+        ($e: expr) => {
+            Stmt::Expr($e)
+        };
+    }
+
+    macro_rules! literal {
+        ($e: expr) => {
+            Expr::Literal($e)
+        };
+    }
+
+    macro_rules! int {
+        ($e: expr) => {
+            Literal::Number(Number::Int($e))
+        };
+    }
+
+    macro_rules! double {
+        ($e: expr) => {
+            Literal::Number(Number::Float($e))
+        };
+    }
+
+    macro_rules! minus {
+        ($e: expr) => {
+            Stmt::Expr(Expr::Prefix(Prefix::Minus, Box::new($e)))
+        };
+    }
+
+    macro_rules! string {
+        ($e: expr) => {
+            Literal::String($e.to_string())
+        };
+    }
+
+    macro_rules! boolean {
+        ($e: expr) => {
+            Literal::Bool($e)
+        };
+    }
+
+    macro_rules! array {
+        ($e: expr) => {
+            Expr::Literal(Literal::Array($e))
+        };
+    }
+
+    #[test]
+    fn test_numbers() {
+        assert_eq!(parse("1").unwrap(), vec![stmt!(literal!(int!(1)))]);
+        assert_eq!(parse("-20").unwrap(), vec![minus!(literal!(int!(20)))]);
+        assert_eq!(parse("1.2").unwrap(), vec![stmt!(literal!(double!(1.2)))]);
+        assert_eq!(
+            parse("-9.969").unwrap(),
+            vec![minus!(literal!(double!(9.969)))]
+        );
+        assert_eq!(
+            parse("0.00000000000000001").unwrap(),
+            vec![stmt!(literal!(double!(0.00000000000000001)))]
+        );
+    }
+
+    #[test]
+    fn test_strings() {
+        assert_eq!(parse("\"\"").unwrap(), vec![stmt!(literal!(string!("")))]);
+        assert_eq!(
+            parse("\"Hello, World!\"").unwrap(),
+            vec![stmt!(literal!(string!("Hello, World!")))]
+        );
+        assert_eq!(
+            parse("\"नमस्ते\"").unwrap(),
+            vec![stmt!(literal!(string!("नमस्ते")))]
+        );
+        assert_eq!(
+            parse("\"こんにちは\"").unwrap(),
+            vec![stmt!(literal!(string!("こんにちは")))]
+        );
+        assert_eq!(
+            parse("\"こんにちは\"").unwrap(),
+            vec![stmt!(literal!(string!("こんにちは")))]
+        );
+        assert_eq!(
+            parse("\"Z̤͔ͧ̑̓ä͖̭̈̇lͮ̒ͫǧ̗͚̚o̙̔ͮ̇͐̇\"").unwrap(),
+            vec![stmt!(literal!(string!("Z̤͔ͧ̑̓ä͖̭̈̇lͮ̒ͫǧ̗͚̚o̙̔ͮ̇͐̇")))]
+        );
+        assert_eq!(
+            parse("\"👱👱🏻👱🏼👱🏽👱🏾👱🏿\"").unwrap(),
+            vec![stmt!(literal!(string!("👱👱🏻👱🏼👱🏽👱🏾👱🏿")))]
+        );
+    }
+
+    #[test]
+    fn test_bool() {
+        assert_eq!(
+            parse("true").unwrap(),
+            vec![stmt!(literal!(boolean!(true)))]
+        );
+        assert_eq!(
+            parse("false").unwrap(),
+            vec![stmt!(literal!(boolean!(false)))]
+        );
+    }
+
+    #[test]
+    fn test_array() {
+        assert_eq!(
+            parse("[451, 2.9, false, \"hi!\"]").unwrap(),
+            vec![stmt!(array!(vec![
+                literal!(int!(451)),
+                literal!(double!(2.9)),
+                literal!(boolean!(false)),
+                literal!(string!("hi!"))
+            ]))]
+        );
+    }
+}
