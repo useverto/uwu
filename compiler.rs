@@ -6,6 +6,13 @@ use crate::{
     ltype,
     types::Type,
 };
+
+pub enum CompilerError {
+    /// Invalid type assignment
+    UC01,
+    UC02,
+}
+
 /// A compiler will hold the AST of the input source.
 pub struct Compiler {
     ast: Program,
