@@ -699,6 +699,13 @@ mod parser_tests {
             Literal::String($e.to_string())
         };
     }
+
+    macro_rules! boolean {
+        ($e: expr) => {
+            Literal::Bool($e)
+        };
+    }
+
     #[test]
     fn test_numbers() {
         assert_eq!(parse("1").unwrap(), vec![stmt!(literal!(int!(1)))]);
@@ -740,6 +747,18 @@ mod parser_tests {
         assert_eq!(
             parse("\"👱👱🏻👱🏼👱🏽👱🏾👱🏿\"").unwrap(),
             vec![stmt!(literal!(string!("👱👱🏻👱🏼👱🏽👱🏾👱🏿")))]
+        );
+    }
+
+    #[test]
+    fn test_bool() {
+        assert_eq!(
+            parse("true").unwrap(),
+            vec![stmt!(literal!(boolean!(true)))]
+        );
+        assert_eq!(
+            parse("false").unwrap(),
+            vec![stmt!(literal!(boolean!(false)))]
         );
     }
 }
