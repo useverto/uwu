@@ -693,6 +693,12 @@ mod parser_tests {
             Stmt::Expr(Expr::Prefix(Prefix::Minus, Box::new($e)))
         };
     }
+
+    macro_rules! string {
+        ($e: expr) => {
+            Literal::String($e.to_string())
+        };
+    }
     #[test]
     fn test_numbers() {
         assert_eq!(parse("1").unwrap(), vec![stmt!(literal!(int!(1)))]);
@@ -705,6 +711,35 @@ mod parser_tests {
         assert_eq!(
             parse("0.00000000000000001").unwrap(),
             vec![stmt!(literal!(double!(0.00000000000000001)))]
+        );
+    }
+
+    #[test]
+    fn test_strings() {
+        assert_eq!(parse("\"\"").unwrap(), vec![stmt!(literal!(string!("")))]);
+        assert_eq!(
+            parse("\"Hello, World!\"").unwrap(),
+            vec![stmt!(literal!(string!("Hello, World!")))]
+        );
+        assert_eq!(
+            parse("\"नमस्ते\"").unwrap(),
+            vec![stmt!(literal!(string!("नमस्ते")))]
+        );
+        assert_eq!(
+            parse("\"こんにちは\"").unwrap(),
+            vec![stmt!(literal!(string!("こんにちは")))]
+        );
+        assert_eq!(
+            parse("\"こんにちは\"").unwrap(),
+            vec![stmt!(literal!(string!("こんにちは")))]
+        );
+        assert_eq!(
+            parse("\"Z̤͔ͧ̑̓ä͖̭̈̇lͮ̒ͫǧ̗͚̚o̙̔ͮ̇͐̇\"").unwrap(),
+            vec![stmt!(literal!(string!("Z̤͔ͧ̑̓ä͖̭̈̇lͮ̒ͫǧ̗͚̚o̙̔ͮ̇͐̇")))]
+        );
+        assert_eq!(
+            parse("\"👱👱🏻👱🏼👱🏽👱🏾👱🏿\"").unwrap(),
+            vec![stmt!(literal!(string!("👱👱🏻👱🏼👱🏽👱🏾👱🏿")))]
         );
     }
 }
