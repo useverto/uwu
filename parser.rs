@@ -676,6 +676,39 @@ mod parser_tests {
         };
     }
 
+    macro_rules! ident {
+        ($e: expr) => {
+            Box::new(Expr::Ident(Ident($e.to_string())))
+        };
+    }
+
+    macro_rules! call {
+        ($fn: expr, $args: expr) => {
+            Expr::Call {
+                func: $fn,
+                args: $args,
+            }
+        };
+    }
+
+    macro_rules! if_expr {
+        ($if: expr, $stmt: expr, $else: expr) => {
+            Expr::If {
+                cond: Box::new($if),
+                consequence: $stmt,
+                alternative: Some($else),
+            }
+        };
+
+        ($if: expr, $stmt: expr) => {
+            Expr::If {
+                cond: Box::new($if),
+                consequence: $stmt,
+                alternative: None,
+            }
+        };
+    }
+
     macro_rules! int {
         ($e: expr) => {
             Literal::Number(Number::Int($e))
@@ -694,6 +727,30 @@ mod parser_tests {
         };
     }
 
+    macro_rules! lessthan {
+        ($e: expr, $f: expr) => {
+            Expr::Infix(Infix::LessThan, Box::new($e), Box::new($f))
+        };
+    }
+
+    macro_rules! add {
+        ($e: expr, $f: expr) => {
+            Expr::Infix(Infix::Plus, Box::new($e), Box::new($f))
+        };
+    }
+
+    macro_rules! subtract {
+        ($e: expr, $f: expr) => {
+            Expr::Infix(Infix::Minus, Box::new($e), Box::new($f))
+        };
+    }
+
+    macro_rules! equal {
+        ($e: expr, $f: expr) => {
+            Expr::Infix(Infix::Equal, Box::new($e), Box::new($f))
+        };
+    }
+
     macro_rules! string {
         ($e: expr) => {
             Literal::String($e.to_string())
@@ -709,6 +766,12 @@ mod parser_tests {
     macro_rules! array {
         ($e: expr) => {
             Expr::Literal(Literal::Array($e))
+        };
+    }
+
+    macro_rules! object {
+        ($e: expr) => {
+            Expr::Literal(Literal::Hash($e))
         };
     }
 
@@ -778,6 +841,133 @@ mod parser_tests {
                 literal!(boolean!(false)),
                 literal!(string!("hi!"))
             ]))]
+        );
+    }
+
+    #[test]
+    fn test_hash() {
+        assert_eq!(
+            parse(r#"{"k": "v"}"#).unwrap(),
+            vec![stmt!(object!(vec![(
+                literal!(string!("k")),
+                literal!(string!("v"))
+            )]))]
+        );
+        assert_eq!(
+            parse(r#"{"key": "value", "arr": [1, 2, 3]}"#).unwrap(),
+            vec![stmt!(object!(vec![
+                (literal!(string!("key")), literal!(string!("value"))),
+                (
+                    literal!(string!("arr")),
+                    array!(vec![
+                        literal!(int!(1)),
+                        literal!(int!(2)),
+                        literal!(int!(3))
+                    ])
+                )
+            ]))]
+        );
+        assert_eq!(
+            parse(r#"{0: [1, 2, 3]}"#).unwrap(),
+            vec![stmt!(object!(vec![(
+                literal!(int!(0)),
+                array!(vec![
+                    literal!(int!(1)),
+                    literal!(int!(2)),
+                    literal!(int!(3))
+                ])
+            )]))]
+        );
+        assert_eq!(
+            parse(r#"{"vec": [1, 2, [3]]}"#).unwrap(),
+            vec![stmt!(object!(vec![(
+                literal!(string!("vec")),
+                array!(vec![
+                    literal!(int!(1)),
+                    literal!(int!(2)),
+                    array!(vec![literal!(int!(3))])
+                ])
+            )]))]
+        );
+    }
+
+    #[test]
+    fn test_if_stmt_cond() {
+        assert_eq!(
+            parse("if(true): end").unwrap(),
+            vec![stmt!(if_expr!(literal!(boolean!(true)), vec![]))]
+        );
+
+        assert_eq!(
+            parse("if(1 < 2): end").unwrap(),
+            vec![stmt!(if_expr!(
+                lessthan!(literal!(int!(1)), literal!(int!(2))),
+                vec![]
+            ))]
+        );
+    }
+
+    #[test]
+    fn test_if_stmt_consq() {
+        assert_eq!(
+            parse("if(1 < 1.9999): print(\"Fair precision\") end").unwrap(),
+            vec![stmt!(if_expr!(
+                lessthan!(literal!(int!(1)), literal!(double!(1.9999))),
+                vec![stmt!(call!(
+                    ident!("print"),
+                    vec![literal!(string!("Fair precision"))]
+                ))]
+            ))]
+        );
+
+        assert_eq!(
+            parse("if(type(input) == \"string\"): print(\"Type of input is string\") else: print(\"Type of input is not a string\") end").unwrap(),
+            vec![
+                stmt!(
+                    if_expr!(
+                        equal!(
+                            call!(
+                                ident!("type"),
+                                vec![*ident!("input")]
+                            ),
+                            literal!(string!("string"))
+                        ),
+                        vec![
+                            stmt!(call!(
+                                ident!("print"),
+                                vec![literal!(string!("Type of input is string"))]
+                                )
+                            )
+                        ],
+                        vec![
+                            stmt!(
+                                call!(
+                                    ident!("print"),
+                                    vec![
+                                        literal!(string!("Type of input is not a string"))
+                                    ]
+                                )
+                            )
+                        ]
+                    )
+                )
+            ]
+        );
+    }
+
+    #[test]
+    fn test_infix() {
+        assert_eq!(
+            parse("1 + 2").unwrap(),
+            vec![stmt!(add!(literal!(int!(1)), literal!(int!(2))))]
+        );
+
+        assert_eq!(
+            parse("1 + 190.7 - 1").unwrap(),
+            vec![stmt!(subtract!(
+                add!(literal!(int!(1)), literal!(double!(190.7))),
+                literal!(int!(1))
+            ))]
         );
     }
 }
