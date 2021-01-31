@@ -2,15 +2,15 @@
 
 uwu. Transpiles to safe, optimised &amp; pluggable JavaScript.
 
-Let's say you want your user's to enter code. This can be due to various reasons including plugins, customizations, etc.
+Let's say you want your users to enter code. This can be due to various reasons including plugins, customizations, etc.
 
-The problem is, _should you accept/run Javascript from an untrusted source?_ Probably not.
+The problem: _Should you accept/run Javascript from an untrusted source?_ Probably not.
 ```js
 // This is dangerous!
 let key = localStorage.getItem("apiKey");
 ```
 
-With uwu language design, code is completely sandboxed from it's outer enviornment.
+With uwu's language design, code is completely sandboxed from its outer enviornment.
 The following code won't compile at all:
 ```js
 let key = localStorage["getItem"]("apiKey");
