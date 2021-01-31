@@ -676,6 +676,24 @@ mod parser_tests {
         };
     }
 
+    macro_rules! if_expr {
+        ($if: expr, $stmt: expr, $else: expr) => {
+            Expr::If {
+                cond: Box::new($if),
+                consequence: $stmt,
+                alternative: $else,
+            }
+        };
+
+        ($if: expr, $stmt: expr) => {
+            Expr::If {
+                cond: Box::new($if),
+                consequence: $stmt,
+                alternative: None,
+            }
+        };
+    }
+
     macro_rules! int {
         ($e: expr) => {
             Literal::Number(Number::Int($e))
@@ -691,6 +709,12 @@ mod parser_tests {
     macro_rules! minus {
         ($e: expr) => {
             Stmt::Expr(Expr::Prefix(Prefix::Minus, Box::new($e)))
+        };
+    }
+
+    macro_rules! lessthan {
+        ($e: expr, $f: expr) => {
+            Expr::Infix(Infix::LessThan, Box::new($e), Box::new($f))
         };
     }
 
@@ -831,6 +855,22 @@ mod parser_tests {
                     array!(vec![literal!(int!(3))])
                 ])
             )]))]
+        );
+    }
+
+    #[test]
+    fn test_if_stmt() {
+        assert_eq!(
+            parse("if(true): end").unwrap(),
+            vec![stmt!(if_expr!(literal!(boolean!(true)), vec![]))]
+        );
+
+        assert_eq!(
+            parse("if(1 < 2): end").unwrap(),
+            vec![stmt!(if_expr!(
+                lessthan!(literal!(int!(1)), literal!(int!(2))),
+                vec![]
+            ))]
         );
     }
 }
