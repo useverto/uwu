@@ -992,4 +992,20 @@ mod parser_tests {
             ))]
         );
     }
+
+    #[test]
+    fn test_call() {
+        assert_eq!(
+            parse("print(\"Hello, World!\")").unwrap(),
+            vec![stmt!(call!(
+                ident!("print"),
+                vec![literal!(string!("Hello, World!"))]
+            ))]
+        );
+
+        assert_eq!(
+            parse("int(0.9910)").unwrap(),
+            vec![stmt!(call!(ident!("int"), vec![literal!(double!(0.9910))]))]
+        );
+    }
 }
