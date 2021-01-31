@@ -712,6 +712,12 @@ mod parser_tests {
         };
     }
 
+    macro_rules! object {
+        ($e: expr) => {
+            Expr::Literal(Literal::Hash($e))
+        };
+    }
+
     #[test]
     fn test_numbers() {
         assert_eq!(parse("1").unwrap(), vec![stmt!(literal!(int!(1)))]);
@@ -778,6 +784,53 @@ mod parser_tests {
                 literal!(boolean!(false)),
                 literal!(string!("hi!"))
             ]))]
+        );
+    }
+
+    #[test]
+    fn test_hash() {
+        assert_eq!(
+            parse(r#"{"k": "v"}"#).unwrap(),
+            vec![stmt!(object!(vec![(
+                literal!(string!("k")),
+                literal!(string!("v"))
+            )]))]
+        );
+        assert_eq!(
+            parse(r#"{"key": "value", "arr": [1, 2, 3]}"#).unwrap(),
+            vec![stmt!(object!(vec![
+                (literal!(string!("key")), literal!(string!("value"))),
+                (
+                    literal!(string!("arr")),
+                    array!(vec![
+                        literal!(int!(1)),
+                        literal!(int!(2)),
+                        literal!(int!(3))
+                    ])
+                )
+            ]))]
+        );
+        assert_eq!(
+            parse(r#"{0: [1, 2, 3]}"#).unwrap(),
+            vec![stmt!(object!(vec![(
+                literal!(int!(0)),
+                array!(vec![
+                    literal!(int!(1)),
+                    literal!(int!(2)),
+                    literal!(int!(3))
+                ])
+            )]))]
+        );
+        assert_eq!(
+            parse(r#"{"vec": [1, 2, [3]]}"#).unwrap(),
+            vec![stmt!(object!(vec![(
+                literal!(string!("vec")),
+                array!(vec![
+                    literal!(int!(1)),
+                    literal!(int!(2)),
+                    array!(vec![literal!(int!(3))])
+                ])
+            )]))]
         );
     }
 }
