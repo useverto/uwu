@@ -696,7 +696,7 @@ mod parser_tests {
             Expr::If {
                 cond: Box::new($if),
                 consequence: $stmt,
-                alternative: $else,
+                alternative: Some($else),
             }
         };
 
@@ -730,6 +730,12 @@ mod parser_tests {
     macro_rules! lessthan {
         ($e: expr, $f: expr) => {
             Expr::Infix(Infix::LessThan, Box::new($e), Box::new($f))
+        };
+    }
+
+    macro_rules! equal {
+        ($e: expr, $f: expr) => {
+            Expr::Infix(Infix::Equal, Box::new($e), Box::new($f))
         };
     }
 
@@ -900,6 +906,40 @@ mod parser_tests {
                     vec![literal!(string!("Fair precision"))]
                 ))]
             ))]
+        );
+
+        assert_eq!(
+            parse("if(type(input) == \"string\"): print(\"Type of input is string\") else: print(\"Type of input is not a string\") end").unwrap(),
+            vec![
+                stmt!(
+                    if_expr!(
+                        equal!(
+                            call!(
+                                ident!("type"),
+                                vec![*ident!("input")]
+                            ),
+                            literal!(string!("string"))
+                        ),
+                        vec![
+                            stmt!(call!(
+                                ident!("print"),
+                                vec![literal!(string!("Type of input is string"))]
+                                )
+                            )
+                        ],
+                        vec![
+                            stmt!(
+                                call!(
+                                    ident!("print"),
+                                    vec![
+                                        literal!(string!("Type of input is not a string"))
+                                    ]
+                                )
+                            )
+                        ]
+                    )
+                )
+            ]
         );
     }
 }
