@@ -733,6 +733,18 @@ mod parser_tests {
         };
     }
 
+    macro_rules! add {
+        ($e: expr, $f: expr) => {
+            Expr::Infix(Infix::Plus, Box::new($e), Box::new($f))
+        };
+    }
+
+    macro_rules! subtract {
+        ($e: expr, $f: expr) => {
+            Expr::Infix(Infix::Minus, Box::new($e), Box::new($f))
+        };
+    }
+
     macro_rules! equal {
         ($e: expr, $f: expr) => {
             Expr::Infix(Infix::Equal, Box::new($e), Box::new($f))
@@ -940,6 +952,22 @@ mod parser_tests {
                     )
                 )
             ]
+        );
+    }
+
+    #[test]
+    fn test_infix() {
+        assert_eq!(
+            parse("1 + 2").unwrap(),
+            vec![stmt!(add!(literal!(int!(1)), literal!(int!(2))))]
+        );
+
+        assert_eq!(
+            parse("1 + 190.7 - 1").unwrap(),
+            vec![stmt!(subtract!(
+                add!(literal!(int!(1)), literal!(double!(190.7))),
+                literal!(int!(1))
+            ))]
         );
     }
 }
