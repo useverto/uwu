@@ -763,6 +763,12 @@ mod parser_tests {
         };
     }
 
+    macro_rules! index {
+        ($e: expr, $f: expr) => {
+            Expr::Index($e, $f)
+        };
+    }
+
     macro_rules! array {
         ($e: expr) => {
             Expr::Literal(Literal::Array($e))
@@ -967,6 +973,22 @@ mod parser_tests {
             vec![stmt!(subtract!(
                 add!(literal!(int!(1)), literal!(double!(190.7))),
                 literal!(int!(1))
+            ))]
+        );
+    }
+
+    #[test]
+    fn test_index() {
+        assert_eq!(
+            parse("o[1]").unwrap(),
+            vec![stmt!(index!(ident!("o"), Box::new(literal!(int!(1)))))]
+        );
+
+        assert_eq!(
+            parse("[1, 2][0]").unwrap(),
+            vec![stmt!(index!(
+                Box::new(array!(vec![literal!(int!(1)), literal!(int!(2))])),
+                Box::new(literal!(int!(0)))
             ))]
         );
     }
