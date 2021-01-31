@@ -676,6 +676,21 @@ mod parser_tests {
         };
     }
 
+    macro_rules! ident {
+        ($e: expr) => {
+            Box::new(Expr::Ident(Ident($e.to_string())))
+        };
+    }
+
+    macro_rules! call {
+        ($fn: expr, $args: expr) => {
+            Expr::Call {
+                func: $fn,
+                args: $args,
+            }
+        };
+    }
+
     macro_rules! if_expr {
         ($if: expr, $stmt: expr, $else: expr) => {
             Expr::If {
@@ -859,7 +874,7 @@ mod parser_tests {
     }
 
     #[test]
-    fn test_if_stmt() {
+    fn test_if_stmt_cond() {
         assert_eq!(
             parse("if(true): end").unwrap(),
             vec![stmt!(if_expr!(literal!(boolean!(true)), vec![]))]
@@ -870,6 +885,20 @@ mod parser_tests {
             vec![stmt!(if_expr!(
                 lessthan!(literal!(int!(1)), literal!(int!(2))),
                 vec![]
+            ))]
+        );
+    }
+
+    #[test]
+    fn test_if_stmt_consq() {
+        assert_eq!(
+            parse("if(1 < 1.9999): print(\"Fair precision\") end").unwrap(),
+            vec![stmt!(if_expr!(
+                lessthan!(literal!(int!(1)), literal!(double!(1.9999))),
+                vec![stmt!(call!(
+                    ident!("print"),
+                    vec![literal!(string!("Fair precision"))]
+                ))]
             ))]
         );
     }
