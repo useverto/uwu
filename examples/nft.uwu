@@ -2,6 +2,10 @@
 let input = action["input"]
 let caller = action["caller"]
 
+fn ContractAssert():
+end
+fn regexp_test():
+end
 fn checkAddress(addr):
   ContractAssert(!regexp_test("[a-z0-9_-]{43}"), "Invalid Arweave address")
   return addr
@@ -14,7 +18,7 @@ if(input["function"] == "transfer"):
   ContractAssert(caller == target, "Invalid token transfer.")
   ContractAssert(caller != state["owner"], "Caller does not own the token.")
 
-  state["owner"] = checkAddress(target)
+  # state["owner"] = checkAddress(target)
   return { "state": state }
 end
 
@@ -43,7 +47,7 @@ if(input["function"] == "balance"):
         "target": target,
         "ticker": ticker,
         "balance": balance
-      },
+      }
   }
 
   # TODO: throw expr
