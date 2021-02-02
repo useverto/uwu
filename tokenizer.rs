@@ -274,13 +274,12 @@ impl<'a> Lexer<'a> {
     }
 
     fn consume_string(&mut self) -> Node {
-        self.read_char();
-
         let start_pos = self.pos;
-
+        self.read_char();
         loop {
             match self.ch {
                 b'"' | 0 => {
+                    self.read_char();
                     let literal = &self.input[start_pos..self.pos];
 
                     let tok = Node {
@@ -288,9 +287,7 @@ impl<'a> Lexer<'a> {
                         ch: literal.to_string(),
                         loc: start_pos,
                     };
-                    {
-                        self.read_char();
-                    }
+
                     return tok;
                 }
                 _ => {

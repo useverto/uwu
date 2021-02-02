@@ -1,0 +1,55 @@
+# expected global variables: action, state, regexp_test, ContractAssert, type
+let input = action["input"]
+let caller = action["caller"]
+let state = {}
+fn ContractAssert():
+end
+fn type():
+end
+fn regexp_test():
+end
+fn checkAddress(addr):
+  ContractAssert(!regexp_test("[a-z0-9_-]{43}"), "Invalid Arweave address")
+  return addr
+end
+
+if(input["function"] == "transfer"):
+  let target = input["target"]
+  
+  ContractAssert(!target, "No target specified.")
+  ContractAssert(caller == target, "Invalid token transfer.")
+  ContractAssert(caller != state["owner"], "Caller does not own the token.")
+
+  state["owner"] = checkAddress(target)
+  return { "state": state }
+end
+
+if(input["function"] == "balance"):
+  let target = ""
+  if(!input["target"]):
+    target = caller
+  else:
+    target = input["target"]
+  end
+
+  let ticker = state["ticker"]
+  ContractAssert(
+      type(target) != "string",
+      "Must specify target to get balance for."
+  )
+  
+  let balance = 0
+  if(target == state["owner"]):
+    balance = 1
+  end
+
+  return {
+      "result": {
+        "target": target,
+        "ticker": ticker,
+        "balance": balance
+      }
+  }
+
+  # TODO: throw expr
+end

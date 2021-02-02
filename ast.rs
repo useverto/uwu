@@ -61,7 +61,7 @@ impl fmt::Display for Infix {
 pub enum Expr {
     Ident(Ident),
     Let(Ident, Box<Expr>),
-    Assign(Ident, Box<Expr>),
+    Assign(Box<Expr>, Box<Expr>),
     Literal(Literal),
     Prefix(Prefix, Box<Expr>),
     Infix(Infix, Box<Expr>, Box<Expr>),
@@ -80,9 +80,17 @@ pub enum Expr {
         body: BlockStmt,
         name: Option<Ident>,
     },
+    Macro {
+        name: Box<Expr>,
+        args: Vec<Expr>,
+    },
     Call {
         func: Box<Expr>,
         args: Vec<Expr>,
+    },
+    Regexp {
+        pattern: Box<Expr>,
+        flags: Option<Ident>,
     },
 }
 

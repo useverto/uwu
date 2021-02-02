@@ -29,6 +29,7 @@ pub enum Token {
     Number(Number),
     Bool(bool),
     String(String),
+    Regexp(String, String),
 
     // Statements
     Assign,
