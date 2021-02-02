@@ -80,9 +80,17 @@ pub enum Expr {
         body: BlockStmt,
         name: Option<Ident>,
     },
+    Macro {
+        name: Box<Expr>,
+        args: Vec<Expr>,
+    },
     Call {
         func: Box<Expr>,
         args: Vec<Expr>,
+    },
+    Regexp {
+        pattern: Box<Expr>,
+        flags: Option<Ident>,
     },
 }
 

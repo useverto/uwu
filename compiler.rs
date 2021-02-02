@@ -2,6 +2,8 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::ast::{BlockStmt, Expr, Ident, Literal, Number, Program, Stmt};
 use crate::env::Env;
+use crate::macros::Macro;
+
 /// A compiler will hold the AST of the input source.
 pub struct Compiler {
     ast: Program,
@@ -146,6 +148,19 @@ impl Compiler {
                 }
                 source.push_str(");");
             }
+            Expr::Macro { name, args } => {
+                let function = &self.compile_expr(name)?;
+                let m = Macro::from_name(function)?;
+                source.push_str(&m.expand(args)?);
+            }
+            Expr::Regexp { pattern, flags } => {
+                source.push_str("/");
+                source.push_str(&self.compile_expr(pattern)?);
+                source.push_str("/");
+                if let Some(Ident(fl)) = flags {
+                    source.push_str(&fl);
+                }
+            }
             Expr::While { cond, consequence } => {
                 let cnd = &self.compile_expr(cond)?;
                 let consq = &self.compile_block(consequence)?;
@@ -182,8 +197,7 @@ impl Compiler {
         match literal {
             // Format a number from it's display trait.
             Literal::Number(val) => Some(self.compile_number(val)),
-            // Format a string literal's value as "<val>".
-            Literal::String(val) => Some(format!("\"{}\"", val)),
+            Literal::String(val) => Some(val.to_string()),
             Literal::Bool(val) => Some(val.to_string()),
             Literal::Array(val) => {
                 let mut arr = "[".to_string();

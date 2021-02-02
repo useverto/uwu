@@ -218,7 +218,8 @@ impl<'a> Parser<'a> {
             Token::Bool(_) => self.parse_bool_expr(),
             Token::Lbracket => self.parse_array_expr(),
             Token::Lbrace => self.parse_hash_expr(),
-            Token::Percent | Token::Caret | Token::Bang | Token::Minus | Token::Plus => {
+            Token::Slash => self.parse_regexp_expr(),
+            Token::Percent | Token::Caret | Token::Minus | Token::Plus | Token::Bang => {
                 self.parse_prefix_expr()
             }
             Token::Lparen => self.parse_grouped_expr(),
@@ -335,6 +336,34 @@ impl<'a> Parser<'a> {
         }
 
         Some(Expr::Let(name, Box::new(expr)))
+    }
+
+    fn parse_regexp_pattern(&mut self) -> Expr {
+        let mut block = String::new();
+        while !self.current_token_is(Token::Slash) && !self.current_token_is(Token::Eof) {
+            block.push_str(&self.current_token.ch);
+            self.bump();
+        }
+
+        Expr::Ident(Ident(block))
+    }
+
+    fn parse_regexp_expr(&mut self) -> Option<Expr> {
+        self.bump();
+
+        let pattern = self.parse_regexp_pattern();
+        self.bump();
+
+        let flags = self.parse_ident();
+
+        if self.next_token_is(&Token::Semicolon) {
+            self.bump();
+        }
+
+        Some(Expr::Regexp {
+            pattern: Box::new(pattern),
+            flags,
+        })
     }
 
     fn parse_func_expr(&mut self) -> Option<Expr> {
@@ -753,7 +782,7 @@ mod parser_tests {
 
     macro_rules! string {
         ($e: expr) => {
-            Literal::String($e.to_string())
+            Literal::String(format!("\"{}\"", $e.to_string()))
         };
     }
 
@@ -772,6 +801,15 @@ mod parser_tests {
     macro_rules! array {
         ($e: expr) => {
             Expr::Literal(Literal::Array($e))
+        };
+    }
+
+    macro_rules! regexp {
+        ($p: expr, $f: expr) => {
+            Expr::Regexp {
+                pattern: $p,
+                flags: $f,
+            }
         };
     }
 
@@ -1006,6 +1044,18 @@ mod parser_tests {
         assert_eq!(
             parse("int(0.9910)").unwrap(),
             vec![stmt!(call!(ident!("int"), vec![literal!(double!(0.9910))]))]
+        );
+    }
+
+    #[test]
+    fn test_regexp() {
+        assert_eq!(
+            parse("/x/").unwrap(),
+            vec![stmt!(regexp!(ident!("x"), None))]
+        );
+        assert_eq!(
+            parse(r#"/^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/g"#).unwrap(),
+            vec![stmt!(regexp!(ident!(r#"^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$"#), Some(Ident("g".to_string()))))]
         );
     }
 }
