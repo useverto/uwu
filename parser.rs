@@ -308,7 +308,7 @@ impl<'a> Parser<'a> {
             self.bump();
         }
 
-        Some(Expr::Assign(name, Box::new(expr)))
+        Some(Expr::Assign(Box::new(Expr::Ident(name)), Box::new(expr)))
     }
 
     fn parse_let_expr(&mut self) -> Option<Expr> {
@@ -577,7 +577,15 @@ impl<'a> Parser<'a> {
             return None;
         }
 
-        Some(Expr::Index(Box::new(left), Box::new(index)))
+        let index = Expr::Index(Box::new(left), Box::new(index));
+        if self.next_token_is(&Token::Assign) {
+            self.bump();
+            self.bump();
+            let val = self.parse_expr(Precedence::Lowest)?;
+            return Some(Expr::Assign(Box::new(index), Box::new(val)));
+        }
+
+        Some(index)
     }
 
     fn parse_grouped_expr(&mut self) -> Option<Expr> {

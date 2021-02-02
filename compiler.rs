@@ -76,12 +76,9 @@ impl Compiler {
                 let Ident(name) = ident;
                 source.push_str(&format!("let {} = {}; \n", name, value));
             }
-            Expr::Assign(ident, expr) => {
-                let value = match self.compile_expr(expr) {
-                    Some(value) => value,
-                    None => return None,
-                };
-                let Ident(name) = ident;
+            Expr::Assign(v, expr) => {
+                let value = self.compile_expr(expr)?;
+                let name = self.compile_expr(v)?;
                 source.push_str(&format!("{} = {}; \n", name, value));
             }
             Expr::Prefix(prefix, expr) => {

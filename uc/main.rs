@@ -1,7 +1,6 @@
 use std::env;
 use std::fs;
 use uwu::compiler::Compiler;
-use uwu::create_diagnostic;
 use uwu::parser::{ParseError, Parser};
 use uwu::tokenizer::Lexer;
 

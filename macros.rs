@@ -1,5 +1,4 @@
 use crate::ast::{Expr, Ident, Literal};
-
 pub enum Macro {
     Regexp,
 }
@@ -28,7 +27,6 @@ impl Macro {
                 }
                 None
             }
-            _ => return None,
         }
     }
 }

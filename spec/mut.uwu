@@ -1,5 +1,9 @@
 let a = 1
 a = 2
 
-let s = { "target": {} }
-s["target"] 
+# mutate objects and arrays
+let state = { "target": {} }
+state["target"] = 1
+
+let numbers = [1, 2, 3]
+numbers[1] = 3

@@ -1,8 +1,10 @@
 # expected global variables: action, state, regexp_test, ContractAssert, type
 let input = action["input"]
 let caller = action["caller"]
-
+let state = {}
 fn ContractAssert():
+end
+fn type():
 end
 fn regexp_test():
 end
@@ -18,7 +20,7 @@ if(input["function"] == "transfer"):
   ContractAssert(caller == target, "Invalid token transfer.")
   ContractAssert(caller != state["owner"], "Caller does not own the token.")
 
-  # state["owner"] = checkAddress(target)
+  state["owner"] = checkAddress(target)
   return { "state": state }
 end
 
@@ -36,7 +38,6 @@ if(input["function"] == "balance"):
       "Must specify target to get balance for."
   )
   
-  # target === state.owner ? 1 : 0
   let balance = 0
   if(target == state["owner"]):
     balance = 1
