@@ -83,7 +83,7 @@ impl<'a> Parser<'a> {
             Token::Plus | Token::Minus => Precedence::Sum,
             Token::Slash | Token::Asterisk => Precedence::Product,
             Token::Caret | Token::Percent => Precedence::Sum,
-            Token::Lbracket => Precedence::Index,
+            Token::Lbracket | Token::Dot => Precedence::Index,
             Token::Lparen => Precedence::Call,
             _ => Precedence::Lowest,
         }
@@ -235,7 +235,6 @@ impl<'a> Parser<'a> {
                 return None;
             }
         };
-
         while !self.next_token_is(&Token::Semicolon) && precedence < self.next_token_precedence() {
             match self.next_token.token {
                 Token::Plus
@@ -256,6 +255,10 @@ impl<'a> Parser<'a> {
                 Token::Lbracket => {
                     self.bump();
                     left = self.parse_index_expr(left.unwrap());
+                }
+                Token::Dot => {
+                    self.bump();
+                    left = self.parse_accessor_expr(left.unwrap());
                 }
                 Token::Lparen => {
                     let l = left.clone().unwrap();
@@ -287,7 +290,6 @@ impl<'a> Parser<'a> {
                 None => return None,
             };
         }
-
         let name = match self.parse_ident() {
             Some(name) => name,
             None => return None,
@@ -565,6 +567,14 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn parse_accessor_expr(&mut self, left: Expr) -> Option<Expr> {
+        self.bump();
+
+        let accessor = self.parse_ident()?;
+
+        Some(Expr::Accessor(Box::new(left), accessor))
+    }
+
     fn parse_index_expr(&mut self, left: Expr) -> Option<Expr> {
         self.bump();
 
@@ -803,6 +813,12 @@ mod parser_tests {
     macro_rules! index {
         ($e: expr, $f: expr) => {
             Expr::Index($e, $f)
+        };
+    }
+
+    macro_rules! accessor {
+        ($e: expr, $f: expr) => {
+            Expr::Accessor($e, $f)
         };
     }
 
@@ -1064,6 +1080,28 @@ mod parser_tests {
         assert_eq!(
             parse(r#"/^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/g"#).unwrap(),
             vec![stmt!(regexp!(ident!(r#"^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$"#), Some(Ident("g".to_string()))))]
+        );
+    }
+
+    #[test]
+    fn test_selectors() {
+        assert_eq!(
+            parse("object.property").unwrap(),
+            vec![stmt!(accessor!(
+                ident!("object"),
+                Ident("property".to_string())
+            ))]
+        );
+
+        assert_eq!(
+            parse("a.b.c.d").unwrap(),
+            vec![stmt!(accessor!(
+                Box::new(accessor!(
+                    Box::new(accessor!(ident!("a"), Ident("b".to_string()))),
+                    Ident("c".to_string())
+                )),
+                Ident("d".to_string())
+            ))]
         );
     }
 }
