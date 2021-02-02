@@ -106,8 +106,8 @@ impl Compiler {
             }
             Expr::Accessor(expr1, expr2) => {
                 let e1 = self.compile_expr(expr1)?;
-                let Ident(name) = &expr2[0];
                 source.push_str(&e1);
+                let Ident(name) = &expr2;
                 source.push_str(".");
                 source.push_str(&name);
             }

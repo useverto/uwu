@@ -572,7 +572,7 @@ impl<'a> Parser<'a> {
 
         let accessor = self.parse_ident()?;
 
-        Some(Expr::Accessor(Box::new(left), vec![accessor]))
+        Some(Expr::Accessor(Box::new(left), accessor))
     }
 
     fn parse_index_expr(&mut self, left: Expr) -> Option<Expr> {
