@@ -816,6 +816,12 @@ mod parser_tests {
         };
     }
 
+    macro_rules! accessor {
+        ($e: expr, $f: expr) => {
+            Expr::Accessor($e, $f)
+        };
+    }
+
     macro_rules! array {
         ($e: expr) => {
             Expr::Literal(Literal::Array($e))
@@ -1074,6 +1080,28 @@ mod parser_tests {
         assert_eq!(
             parse(r#"/^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/g"#).unwrap(),
             vec![stmt!(regexp!(ident!(r#"^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$"#), Some(Ident("g".to_string()))))]
+        );
+    }
+
+    #[test]
+    fn test_selectors() {
+        assert_eq!(
+            parse("object.property").unwrap(),
+            vec![stmt!(accessor!(
+                ident!("object"),
+                Ident("property".to_string())
+            ))]
+        );
+
+        assert_eq!(
+            parse("a.b.c.d").unwrap(),
+            vec![stmt!(accessor!(
+                Box::new(accessor!(
+                    Box::new(accessor!(ident!("a"), Ident("b".to_string()))),
+                    Ident("c".to_string())
+                )),
+                Ident("d".to_string())
+            ))]
         );
     }
 }
