@@ -66,6 +66,7 @@ pub enum Expr {
     Prefix(Prefix, Box<Expr>),
     Infix(Infix, Box<Expr>, Box<Expr>),
     Index(Box<Expr>, Box<Expr>),
+    Accessor(Box<Expr>, Vec<Ident>),
     If {
         cond: Box<Expr>,
         consequence: BlockStmt,

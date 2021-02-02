@@ -104,6 +104,13 @@ impl Compiler {
                 source.push_str(&e2);
                 source.push_str("]");
             }
+            Expr::Accessor(expr1, expr2) => {
+                let e1 = self.compile_expr(expr1)?;
+                let Ident(name) = &expr2[0];
+                source.push_str(&e1);
+                source.push_str(".");
+                source.push_str(&name);
+            }
             Expr::Literal(lit) => {
                 source.push_str(&self.compile_literal(lit)?);
             }

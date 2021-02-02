@@ -83,7 +83,7 @@ impl<'a> Parser<'a> {
             Token::Plus | Token::Minus => Precedence::Sum,
             Token::Slash | Token::Asterisk => Precedence::Product,
             Token::Caret | Token::Percent => Precedence::Sum,
-            Token::Lbracket => Precedence::Index,
+            Token::Lbracket | Token::Dot => Precedence::Index,
             Token::Lparen => Precedence::Call,
             _ => Precedence::Lowest,
         }
@@ -235,7 +235,6 @@ impl<'a> Parser<'a> {
                 return None;
             }
         };
-
         while !self.next_token_is(&Token::Semicolon) && precedence < self.next_token_precedence() {
             match self.next_token.token {
                 Token::Plus
@@ -256,6 +255,10 @@ impl<'a> Parser<'a> {
                 Token::Lbracket => {
                     self.bump();
                     left = self.parse_index_expr(left.unwrap());
+                }
+                Token::Dot => {
+                    self.bump();
+                    left = self.parse_accessor_expr(left.unwrap());
                 }
                 Token::Lparen => {
                     let l = left.clone().unwrap();
@@ -287,7 +290,6 @@ impl<'a> Parser<'a> {
                 None => return None,
             };
         }
-
         let name = match self.parse_ident() {
             Some(name) => name,
             None => return None,
@@ -563,6 +565,14 @@ impl<'a> Parser<'a> {
             Some(expr) => Some(Expr::Infix(infix, Box::new(left), Box::new(expr))),
             None => None,
         }
+    }
+
+    fn parse_accessor_expr(&mut self, left: Expr) -> Option<Expr> {
+        self.bump();
+
+        let accessor = self.parse_ident()?;
+
+        Some(Expr::Accessor(Box::new(left), vec![accessor]))
     }
 
     fn parse_index_expr(&mut self, left: Expr) -> Option<Expr> {

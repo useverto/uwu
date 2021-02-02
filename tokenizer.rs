@@ -147,6 +147,7 @@ impl<'a> Lexer<'a> {
             b',' => ctok!(self, Token::Comma),
             b';' => ctok!(self, Token::Semicolon),
             b':' => ctok!(self, Token::Colon),
+            b'.' => ctok!(self, Token::Dot),
             b'a'..=b'z' | b'A'..=b'Z' | b'_' => {
                 return self.consume_identifier();
             }
