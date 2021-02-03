@@ -17,7 +17,7 @@ fn c(source: &str) -> Result<String, Vec<ParseError>> {
         return Err(errs);
     }
     let compiler = Compiler::new(ast);
-    Ok(compiler.compile())
+    Ok(compiler.compile().unwrap())
 }
 
 fn main() {
