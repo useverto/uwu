@@ -104,9 +104,9 @@ impl Compiler {
                 let value = self.compile_expr(expr)?;
                 let Ident(name) = ident;
                 if let Expr::Literal(e) = expr.as_ref() {
-                    self.scope.borrow_mut().addt(name.into(), e);
+                    self.scope.borrow_mut().addt(name, e);
                 } else {
-                    self.scope.borrow_mut().sett(name.into(), Type::Unknown);
+                    self.scope.borrow_mut().sett(name, Type::Unknown);
                 }
                 source.push_str(&format!("let {} = {}; \n", name, value));
             }
@@ -115,11 +115,11 @@ impl Compiler {
                 let name = self.compile_expr(v)?;
                 if let Expr::Literal(e) = expr.as_ref() {
                     let mut b = self.scope.borrow_mut();
-                    if !b.checkt(name.into(), &ltype!(e)) {
+                    if !b.checkt(&name, &ltype!(e)) {
                         return Err(CompilerError::invalid_type());
                     }
                 } else {
-                    self.scope.borrow_mut().sett(name.into(), Type::Unknown);
+                    self.scope.borrow_mut().sett(&name, Type::Unknown);
                 }
                 source.push_str(&format!("{} = {}; \n", name, value));
             }
@@ -196,8 +196,11 @@ impl Compiler {
             }
             Expr::Macro { name, args } => {
                 let function = &self.compile_expr(name)?;
-                let m = Macro::from_name(function)?;
-                source.push_str(&m.expand(args)?);
+                let m = Macro::from_name(function).ok_or(CompilerError::UC01)?;
+                match m.expand(args) {
+                    Some(m) => source.push_str(&m),
+                    None => return Err(CompilerError::UC01),
+                }
             }
             Expr::Regexp { pattern, flags } => {
                 source.push_str("/");
@@ -242,9 +245,9 @@ impl Compiler {
     fn compile_literal(&self, literal: &Literal) -> Result<String, CompilerError> {
         match literal {
             // Format a number from it's display trait.
-            Literal::Number(val) => Some(self.compile_number(val)),
-            Literal::String(val) => Some(val.to_string()),
-            Literal::Bool(val) => Some(val.to_string()),
+            Literal::Number(val) => Ok(self.compile_number(val)),
+            Literal::String(val) => Ok(val.to_string()),
+            Literal::Bool(val) => Ok(val.to_string()),
             Literal::Array(val) => {
                 let mut arr = "[".to_string();
                 for (i, exp) in val.iter().enumerate() {

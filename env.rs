@@ -23,16 +23,16 @@ impl Env {
         self.function_store.contains(&id)
     }
 
-    pub fn addt(&mut self, id: String, t: &Literal) {
-        self.type_store.insert(id, ltype!(t));
+    pub fn addt(&mut self, id: &str, t: &Literal) {
+        self.type_store.insert(id.to_string(), ltype!(t));
     }
 
-    pub fn sett(&mut self, id: String, t: Type) {
-        self.type_store.insert(id, t);
+    pub fn sett(&mut self, id: &str, t: Type) {
+        self.type_store.insert(id.to_string(), t);
     }
 
-    pub fn checkt(&mut self, id: String, t: &Type) -> bool {
-        match self.type_store.get(&id) {
+    pub fn checkt(&mut self, id: &str, t: &Type) -> bool {
+        match self.type_store.get(id) {
             Some(t2) => t2 == t,
             None => false,
         }
