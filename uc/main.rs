@@ -20,7 +20,7 @@ fn c(source: &str) -> Result<String, String> {
         ));
     }
     let compiler = Compiler::new(ast);
-    Ok(compiler.compile())
+    Ok(compiler.compile().unwrap())
 }
 
 fn main() {
