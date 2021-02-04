@@ -1,6 +1,6 @@
 use std::env;
 use std::fs;
-use uwu::compiler::Compiler;
+use uwu::compiler::{Compiler, CompilerError};
 use uwu::parser::{ParseError, Parser};
 use uwu::tokenizer::Lexer;
 
@@ -9,15 +9,20 @@ use codespan_reporting::files::SimpleFile;
 use codespan_reporting::term;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
 
-fn c(source: &str) -> Result<String, Vec<ParseError>> {
+enum Error {
+    ParseError(Vec<ParseError>),
+    CompilerError(CompilerError),
+}
+
+fn c(source: &str) -> Result<String, Error> {
     let mut parser = Parser::new(Lexer::new(source));
     let ast = parser.parse();
     let errs = parser.get_errors();
     if errs.len() > 0 {
-        return Err(errs);
+        return Err(Error::ParseError(errs));
     }
     let compiler = Compiler::new(ast);
-    Ok(compiler.compile().unwrap())
+    Ok(compiler.compile().map_err(|c| Error::CompilerError(c))?)
 }
 
 fn main() {
@@ -30,17 +35,29 @@ fn main() {
             Ok(r) => println!("{}", r),
             Err(e) => {
                 let file = SimpleFile::new("<repl>", source);
-                for error in e {
-                    let diagnostic = Diagnostic::error()
-                        .with_message("Error")
-                        .with_labels(vec![Label::primary(
-                            (),
-                            error.current_token.loc..error.current_token.loc,
-                        )
-                        .with_message("parse error")])
-                        .with_notes(vec![error.msg]);
+                match e {
+                    Error::ParseError(e) => {
+                        for error in e {
+                            let diagnostic = Diagnostic::error()
+                                .with_message("Error")
+                                .with_labels(vec![Label::primary(
+                                    (),
+                                    error.current_token.loc..error.current_token.loc,
+                                )
+                                .with_message("parse error")])
+                                .with_notes(vec![error.msg]);
 
-                    term::emit(&mut writer.lock(), &config, &file, &diagnostic).unwrap();
+                            term::emit(&mut writer.lock(), &config, &file, &diagnostic).unwrap();
+                        }
+                    }
+                    Error::CompilerError(e) => {
+                        let diagnostic =
+                            Diagnostic::error().with_message("Error").with_labels(vec![
+                                Label::primary((), e.loc..e.loc).with_message("compiler error"),
+                            ]);
+
+                        term::emit(&mut writer.lock(), &config, &file, &diagnostic).unwrap();
+                    }
                 }
             }
         }

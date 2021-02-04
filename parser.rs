@@ -148,7 +148,7 @@ impl<'a> Parser<'a> {
 
         while !self.current_token_is(Token::Eof) {
             match self.parse_stmt() {
-                Some(stmt) => program.push(stmt),
+                Some(stmt) => program.push((stmt, self.current_token.loc)),
                 None => {}
             }
             self.bump();
@@ -164,7 +164,7 @@ impl<'a> Parser<'a> {
 
         while !self.current_token_is(Token::End) && !self.current_token_is(Token::Eof) {
             match self.parse_stmt() {
-                Some(stmt) => block.push(stmt),
+                Some(stmt) => block.push((stmt, self.current_token.loc)),
                 None => {}
             }
             self.bump();
@@ -634,7 +634,7 @@ impl<'a> Parser<'a> {
             && !self.current_token_is(Token::Eof)
         {
             match self.parse_stmt() {
-                Some(stmt) => consequence.push(stmt),
+                Some(stmt) => consequence.push((stmt, self.current_token.loc)),
                 None => {}
             }
             self.bump();
@@ -701,9 +701,12 @@ mod parser_tests {
     use super::Parser;
     use crate::{ast::*, tokenizer::Lexer};
 
-    fn parse(i: &str) -> Result<Program, Vec<ParseError>> {
+    fn parse(i: &str) -> Result<Vec<Stmt>, Vec<ParseError>> {
         let mut p = Parser::new(Lexer::new(i));
-        let ast = p.parse();
+        let mut ast = vec![];
+        for node in p.parse() {
+            ast.push(node.0);
+        }
         let errors = p.get_errors();
         if errors.len() > 0 {
             return Err(errors);
@@ -981,10 +984,13 @@ mod parser_tests {
             parse("if(1 < 1.9999): print(\"Fair precision\") end").unwrap(),
             vec![stmt!(if_expr!(
                 lessthan!(literal!(int!(1)), literal!(double!(1.9999))),
-                vec![stmt!(call!(
-                    ident!("print"),
-                    vec![literal!(string!("Fair precision"))]
-                ))]
+                vec![(
+                    stmt!(call!(
+                        ident!("print"),
+                        vec![literal!(string!("Fair precision"))]
+                    )),
+                    38
+                )]
             ))]
         );
 
@@ -1001,21 +1007,21 @@ mod parser_tests {
                             literal!(string!("string"))
                         ),
                         vec![
-                            stmt!(call!(
+                            (stmt!(call!(
                                 ident!("print"),
                                 vec![literal!(string!("Type of input is string"))]
                                 )
-                            )
+                            ), 60)
                         ],
                         vec![
-                            stmt!(
+                            (stmt!(
                                 call!(
                                     ident!("print"),
                                     vec![
                                         literal!(string!("Type of input is not a string"))
                                     ]
                                 )
-                            )
+                            ), 105)
                         ]
                     )
                 )

@@ -111,7 +111,7 @@ pub enum Stmt {
     Return(Expr),
 }
 
-pub type BlockStmt = Vec<Stmt>;
+pub type BlockStmt = Vec<(Stmt, usize)>;
 
 pub type Program = BlockStmt;
 
