@@ -34,7 +34,7 @@ fn main() {
         match c(&source) {
             Ok(r) => println!("{}", r),
             Err(e) => {
-                let file = SimpleFile::new("<repl>", source);
+                let file = SimpleFile::new(&args[1], source);
                 match e {
                     Error::ParseError(e) => {
                         for error in e {
