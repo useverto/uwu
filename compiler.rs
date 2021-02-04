@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, fmt, rc::Rc};
 
 use crate::env::Env;
 use crate::macros::Macro;
@@ -20,10 +20,15 @@ pub enum ErrCode {
     UC04,
 }
 
-#[derive(Debug)]
-pub struct CompilerError {
-    pub code: ErrCode,
-    pub loc: usize,
+impl fmt::Display for ErrCode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ErrCode::UC01 => write!(f, "Invalid type assignment"),
+            ErrCode::UC02 => write!(f, "Unexpected expression"),
+            ErrCode::UC03 => write!(f, "Item not found in scope"),
+            ErrCode::UC04 => write!(f, "Expected expression statement"),
+        }
+    }
 }
 
 impl ErrCode {
@@ -41,6 +46,18 @@ impl ErrCode {
 
     pub fn expected_expr_stmt() -> Self {
         Self::UC04
+    }
+}
+
+#[derive(Debug)]
+pub struct CompilerError {
+    pub code: ErrCode,
+    pub loc: usize,
+}
+
+impl fmt::Display for CompilerError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.code)
     }
 }
 
