@@ -53,7 +53,7 @@ fn main() {
                     Error::CompilerError(e) => {
                         let diagnostic =
                             Diagnostic::error().with_message("Error").with_labels(vec![
-                                Label::primary((), e.loc..e.loc).with_message("compiler error"),
+                                Label::primary((), e.loc..e.loc).with_message(format!("{}", e)),
                             ]);
 
                         term::emit(&mut writer.lock(), &config, &file, &diagnostic).unwrap();
