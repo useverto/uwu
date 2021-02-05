@@ -85,6 +85,9 @@ impl<'a> Parser<'a> {
             Token::Caret | Token::Percent => Precedence::Sum,
             Token::Lbracket | Token::Dot => Precedence::Index,
             Token::Lparen => Precedence::Call,
+            Token::PlusAssign | Token::SubAssign | Token::MulAssign | Token::DivAssign => {
+                Precedence::Assign
+            }
             _ => Precedence::Lowest,
         }
     }
@@ -235,6 +238,7 @@ impl<'a> Parser<'a> {
                 return None;
             }
         };
+
         while !self.next_token_is(&Token::Semicolon) && precedence < self.next_token_precedence() {
             match self.next_token.token {
                 Token::Plus
@@ -244,6 +248,10 @@ impl<'a> Parser<'a> {
                 | Token::Caret
                 | Token::Percent
                 | Token::Equal
+                | Token::PlusAssign
+                | Token::MulAssign
+                | Token::DivAssign
+                | Token::SubAssign
                 | Token::NotEqual
                 | Token::LessThan
                 | Token::LessThanEqual
@@ -554,6 +562,9 @@ impl<'a> Parser<'a> {
             Token::GreaterThanEqual => Infix::GreaterThanEqual,
             Token::Caret => Infix::Power,
             Token::Percent => Infix::Modulo,
+            Token::PlusAssign => Infix::PlusAssign,
+            Token::SubAssign => Infix::SubAssign,
+            Token::MulAssign => Infix::MulAssign,
             _ => return None,
         };
 

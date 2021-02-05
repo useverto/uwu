@@ -110,8 +110,22 @@ impl<'a> Lexer<'a> {
             }
             b'^' => ctok!(self, Token::Caret),
             b'%' => ctok!(self, Token::Percent),
-            b'+' => ctok!(self, Token::Plus),
-            b'-' => ctok!(self, Token::Minus),
+            b'+' => {
+                let mut tok = ctok!(self, Token::Plus);
+                if self.nextch_is(b'=') {
+                    self.read_char();
+                    tok = ctok!(self, Token::PlusAssign);
+                }
+                tok
+            }
+            b'-' => {
+                let mut tok = ctok!(self, Token::Minus);
+                if self.nextch_is(b'=') {
+                    tok.token = Token::SubAssign;
+                    self.read_char();
+                }
+                tok
+            }
             b'!' => {
                 let mut tok = ctok!(self, Token::Bang);
                 if self.nextch_is(b'=') {

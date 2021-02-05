@@ -2,7 +2,7 @@ fn handle(state, action):
   let input = action["input"]
   let caller = action["caller"]
   
-  if (input["function"] == "transfer"):
+  if (input.function == "transfer"):
     let target = input.target
     let quantity = input.quantity
     let balances = state.balances
@@ -26,12 +26,12 @@ fn handle(state, action):
       balances[target] = 0
     end
 
-    balances[caller] = balances[caller] - quantity
-    balances[target] = balances[target] + quantity
+    balances[caller] += quantity
+    balances[target] += quantity
     state["balances"] = balances
   end
 
-  if (input["function"] == "balance"):
+  if (input.function == "balance"):
     let balances = state.balances
     let ticker = state.ticker
     let target = ""

@@ -18,6 +18,7 @@ fn c(source: &str) -> Result<String, Error> {
     let mut parser = Parser::new(Lexer::new(source));
     let ast = parser.parse();
     let errs = parser.get_errors();
+    // println!("{:#?}", ast);
     if errs.len() > 0 {
         return Err(Error::ParseError(errs));
     }
