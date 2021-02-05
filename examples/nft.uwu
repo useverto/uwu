@@ -1,0 +1,40 @@
+fn handle(state, action):
+  let input = action["input"]
+  let caller = action["caller"]
+
+  if (input.function == "transfer"):
+    let target = input["target"]
+    if (!target):
+      return 0
+    end
+
+    if (caller != state["owner"]):
+      return 0
+    end
+
+    state["owner"] = target
+    return { "state": state }
+  end
+
+  if (input.function == "balance"):
+    let target = ""
+    if (input["target"]):
+      target = input["target"]
+    else:
+      target = caller
+    end
+
+    let balance = 0
+    if (target == state["owner"]):
+      balance = 1
+    end
+
+    return {
+      "result": {
+        "target": target,
+        "ticker": state["ticker"],
+        "balance": balance 
+      }
+    }
+  end
+end
