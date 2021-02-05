@@ -28,19 +28,19 @@ error: no item named `localStorage` found in scope.
     | -- associated item `localStorage` is not declared
 ```
 
-## Syntax
+### Syntax
 
-### `variables`
+#### `variables`
 
 Syntax for variable declaration and mutation is equivalent to that of
 ECMAScript.
 
 ```js
 let i = 0;
-i = 1;
+i += 1;
 ```
 
-### `types`
+#### `types`
 
 ```py
 # string
@@ -59,27 +59,30 @@ false
 
 # object/dicts
 {"key": "value"}
+
+# regexp
+/[abc]/g
 ```
 
-### `if...else`
+#### `if...else`
 
 ```lua
-if(condition):
-  ...
+if(<expr>):
+  [<expr>, ...]
 else:
-  ...
+  [<expr>, ...]
 end
 ```
 
 ### `while`
 
 ```lua
-while(condition):
-  ...
+while(<expr>):
+  [<expr>, ...]
 end
 ```
 
-### `functions`
+#### `functions`
 
 ```rust
 fn add(x, y):
@@ -89,62 +92,6 @@ end
 add(1, 2)
 ```
 
-## Integration
-
-The compiler internals are written in Rust and compiled to WASM for simple
-client-side browser integration.
-
-```typescript
-import { compile } from "@useverto/uwu";
-
-let [result, diagnostics] = compile("let num = 1");
-
-// Check for compiler diagnostics
-if (diagnostics.length > 0) {
-  // throw the first diagnostics to user
-  throw new Error(diagnostics[0]);
-} else {
-  // evaluate the result
-  // or do whatever with it
-  let execute = new Function(result);
-  execute();
-}
-```
-
-You can also directly use the compiler from Rust.
-
-```toml
-[dependencies]
-uwu = { git = "https://github.com/useverto/uwu" }
-```
-
-```rust
-use uwu::{
-    tokenizer::Lexer,
-    parser::Parser,
-    compiler::Compiler,
-};
-
-fn compile(source: &str) -> Result<String, String> {
-    let mut parser = Parser::new(Lexer::new(source));
-    let ast = parser.parse();
-    let errs = parser.get_errors();
-    if errs.len() > 0 {
-        let e = &errs[0];
-        return Err(create_diagnostic!(
-            "<anon>",
-            source.chars().nth(e.current_token.loc - 1).unwrap(),
-            [e.current_token.loc, e.current_token.loc],
-            e.msg,
-            e.msg
-        ));
-    }
-    let compiler = Compiler::new(ast);
-    Ok(compiler.compile())
-}
-
-// Use the compile function anywhere
-compile("1 + 1")?;
-```
-
 ## License
+
+MIT License
