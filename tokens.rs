@@ -39,7 +39,8 @@ pub enum Token {
     Let,
     Return,
 
-    // Operators
+    // Arithmetic Operators
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#arithmetic_operators
     Plus,
     Minus,
     Bang,
@@ -47,6 +48,13 @@ pub enum Token {
     Slash,
     Caret,
     Percent,
+
+    // Assignment operators
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#assignment_operators
+    PlusAssign,
+    MulAssign,
+    DivAssign,
+    SubAssign,
 
     Equal,
     NotEqual,

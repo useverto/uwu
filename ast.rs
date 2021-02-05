@@ -32,6 +32,10 @@ pub enum Infix {
     NotEqual,
     Power,
     Modulo,
+    PlusAssign,
+    MulAssign,
+    DivAssign,
+    SubAssign,
     GreaterThanEqual,
     GreaterThan,
     LessThanEqual,
@@ -51,8 +55,12 @@ impl fmt::Display for Infix {
             Infix::GreaterThan => write!(f, ">"),
             Infix::LessThanEqual => write!(f, "<="),
             Infix::LessThan => write!(f, "<"),
-            Infix::Power => write!(f, "^"),
+            Infix::Power => write!(f, "**"),
             Infix::Modulo => write!(f, "%"),
+            Infix::PlusAssign => write!(f, "+="),
+            Infix::MulAssign => write!(f, "*="),
+            Infix::DivAssign => write!(f, "/="),
+            Infix::SubAssign => write!(f, "-="),
         }
     }
 }
@@ -125,4 +133,5 @@ pub enum Precedence {
     Prefix,      // -X or !X
     Call,        // myFunction(x)
     Index,       // array[index]
+    Assign,      // x += 1
 }
