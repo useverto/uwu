@@ -3,4 +3,4 @@ fn update(n):
   i += n
 end
 
-update(10) == 10
+update(10)
