@@ -21,4 +21,5 @@ Cargo.lock
 /wasm/pkg-node
 /wasm/target
 
+# Discord Bot token
 /bot/token.txt
