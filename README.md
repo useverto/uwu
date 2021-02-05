@@ -2,6 +2,8 @@
 
 uwu. Transpiles to safe, optimised &amp; pluggable JavaScript.
 
+> This is pre-alpha software. Expect breaking changes.
+
 Let's say you want your users to enter code. This can be due to various reasons
 including plugins, customizations, etc.
 
