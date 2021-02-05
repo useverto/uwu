@@ -2,16 +2,20 @@
 
 uwu. Transpiles to safe, optimised &amp; pluggable JavaScript.
 
-Let's say you want your users to enter code. This can be due to various reasons including plugins, customizations, etc.
+Let's say you want your users to enter code. This can be due to various reasons
+including plugins, customizations, etc.
 
-The problem: _Should you accept/run Javascript from an untrusted source?_ Probably not.
+The problem: _Should you accept/run Javascript from an untrusted source?_
+Probably not.
+
 ```js
 // This is dangerous!
 let key = localStorage.getItem("apiKey");
 ```
 
-With uwu's language design, code is completely sandboxed from its outer enviornment.
-The following code won't compile at all:
+With uwu's language design, code is completely sandboxed from its outer
+enviornment. The following code won't compile at all:
+
 ```js
 let key = localStorage["getItem"]("apiKey");
 ```
@@ -28,7 +32,8 @@ error: no item named `localStorage` found in scope.
 
 ### `variables`
 
-Syntax for variable declaration and mutation is equivalent to that of ECMAScript.
+Syntax for variable declaration and mutation is equivalent to that of
+ECMAScript.
 
 ```js
 let i = 0;
@@ -74,7 +79,6 @@ while(condition):
 end
 ```
 
-
 ### `functions`
 
 ```rust
@@ -87,7 +91,8 @@ add(1, 2)
 
 ## Integration
 
-The compiler internals are written in Rust and compiled to WASM for simple client-side browser integration.
+The compiler internals are written in Rust and compiled to WASM for simple
+client-side browser integration.
 
 ```typescript
 import { compile } from "@useverto/uwu";
@@ -95,14 +100,14 @@ import { compile } from "@useverto/uwu";
 let [result, diagnostics] = compile("let num = 1");
 
 // Check for compiler diagnostics
-if(diagnostics.length > 0) {
-    // throw the first diagnostics to user
-    throw new Error(diagnostics[0])
+if (diagnostics.length > 0) {
+  // throw the first diagnostics to user
+  throw new Error(diagnostics[0]);
 } else {
-    // evaluate the result
-    // or do whatever with it
-    let execute = new Function(result);
-    execute();
+  // evaluate the result
+  // or do whatever with it
+  let execute = new Function(result);
+  execute();
 }
 ```
 
@@ -143,4 +148,3 @@ compile("1 + 1")?;
 ```
 
 ## License
-
