@@ -1,5 +1,6 @@
 use std::{cell::RefCell, fmt, rc::Rc};
 
+use crate::codegen::{BaseGenerator, FunctionGenerator};
 use crate::env::Env;
 use crate::macros::Macro;
 use crate::{
@@ -7,7 +8,6 @@ use crate::{
     ltype,
     types::Type,
 };
-
 #[derive(Debug)]
 pub enum ErrCode {
     /// Invalid type assignment
@@ -217,21 +217,15 @@ impl Compiler {
             }
             Expr::Func { params, body, name } => {
                 if let Some(Ident(ident)) = name {
-                    source.push_str("function ");
-                    source.push_str(ident);
-                    source.push_str("(");
+                    let mut func = FunctionGenerator::new();
+                    func.set_name(ident.to_string());
                     self.scope.borrow_mut().add_fn(ident.into());
-                    for (i, param) in params.iter().enumerate() {
+                    for param in params.iter() {
                         let Ident(n) = param;
-                        source.push_str(n);
-                        if i == params.len() - 1 {
-                            break;
-                        }
-                        source.push_str(",");
+                        func.set_param(n.to_string());
                     }
-                    source.push_str(") {");
-                    source.push_str(&self.compile_block(body)?);
-                    source.push_str("}\n");
+                    func.set_block(self.compile_block(body)?);
+                    source.push_str(&func.generate());
                 }
             }
             Expr::Call { func, args } => {
