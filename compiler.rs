@@ -141,9 +141,6 @@ impl Compiler {
                 let name = self.compile_expr(v)?;
                 if let Expr::Literal(e) = expr.as_ref() {
                     let mut b = self.scope.borrow_mut();
-                    // if !b.checkt(&name, &ltype!(e)) {
-                    //     return Err(ErrCode::invalid_type());
-                    // }
                 } else {
                     self.scope.borrow_mut().sett(&name, Type::Unknown);
                 }
