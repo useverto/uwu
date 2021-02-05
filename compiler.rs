@@ -61,10 +61,25 @@ impl fmt::Display for CompilerError {
     }
 }
 
+pub struct Config {
+    /// Enables experimental type checking for primitive types in the scope.
+    /// Default: `false`
+    pub enable_type_checking: bool,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            enable_type_checking: false,
+        }
+    }
+}
+
 /// A compiler will hold the AST of the input source.
 pub struct Compiler {
     ast: Program,
     scope: Rc<RefCell<Env>>,
+    config: Config,
 }
 
 /// Compiler implementation
@@ -74,7 +89,20 @@ impl Compiler {
         Self {
             ast,
             scope: Rc::new(RefCell::new(Env::new())),
+            config: Default::default(),
         }
+    }
+
+    pub fn new_from_scope(ast: Program, scope: Env) -> Self {
+        Self {
+            ast,
+            scope: Rc::new(RefCell::new(scope)),
+            config: Default::default(),
+        }
+    }
+
+    pub fn set_config(&mut self, config: Config) {
+        self.config = config;
     }
 
     /// Execute AST to JS codegen. Returns javascript code.
@@ -139,13 +167,15 @@ impl Compiler {
             Expr::Assign(v, expr) => {
                 let value = self.compile_expr(expr)?;
                 let name = self.compile_expr(v)?;
-                if let Expr::Literal(e) = expr.as_ref() {
-                    let mut b = self.scope.borrow_mut();
-                    if !b.checkt(&name, &ltype!(e)) {
-                        return Err(ErrCode::invalid_type());
+                if self.config.enable_type_checking {
+                    if let Expr::Literal(e) = expr.as_ref() {
+                        let mut b = self.scope.borrow_mut();
+                        if !b.checkt(&name, &ltype!(e)) {
+                            return Err(ErrCode::invalid_type());
+                        }
+                    } else {
+                        self.scope.borrow_mut().sett(&name, Type::Unknown);
                     }
-                } else {
-                    self.scope.borrow_mut().sett(&name, Type::Unknown);
                 }
                 source.push_str(&format!("{} = {}; \n", name, value));
             }

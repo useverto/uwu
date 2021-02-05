@@ -20,3 +20,5 @@ Cargo.lock
 /wasm/pkg
 /wasm/pkg-node
 /wasm/target
+
+/bot/token.txt
