@@ -75,3 +75,27 @@ impl FunctionGenerator {
         }
     }
 }
+
+enum WhileGeneratorState {
+  None,
+  Condition,
+  Block,
+}
+
+pub struct WhileGenerator {
+    code: String,
+    state: WhileGeneratorState,
+}
+
+impl BaseGenerator for WhileGenerator {
+    fn new() -> Self {
+        Self {
+            code: String::from("while"),
+            state: WhileGeneratorState::None,
+        }
+    }
+
+    fn generate(&mut self) -> String {
+        self.code.clone()
+    }
+}
