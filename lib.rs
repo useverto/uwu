@@ -1,10 +1,8 @@
-mod ast;
-mod codegen;
-pub mod compiler;
-pub mod diagnostics;
-mod env;
-mod macros;
+// pub mod compiler;
+// mod env;
+// mod macros;
 pub mod parser;
-pub mod tokenizer;
-mod tokens;
-mod types;
+// pub mod tokenizer;
+// mod tokens;
+// mod types;
+pub mod scanner;
