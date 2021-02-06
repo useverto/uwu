@@ -1,57 +1,53 @@
-fn handle(state, action):
-  let input = action["input"]
-  let caller = action["caller"]
+function handle(state, action) {
+  let input = action.input;
+  let caller = action.caller;
   
-  if (input.function == "transfer"):
+  if (input.function == "transfer") {
     let target = input.target
     let quantity = input.quantity
     let balances = state.balances
-    if (!target):
+    if (!target) {
       return 0
-    end
+    }
 
-    if (!quantity):
+    if (!quantity) {
       return 0
-    end
+    }
 
-    if (!balances[caller]):
+    if (!balances[caller]) {
       return 0
-    end
+    }
 
-    if (balances[caller] < quantity):
+    if (balances[caller] < quantity) {
       return 0
-    end
+    }
 
-    if (!balances[target]):
+    if (!balances[target]) {
       balances[target] = 0
-    end
+    }
 
     balances[caller] += quantity
     balances[target] += quantity
-    state["balances"] = balances
-  end
+    state.balances = balances
+  }
 
-  if (input.function == "balance"):
+  if (input.function == "balance"){
     let balances = state.balances
     let ticker = state.ticker
-    let target = ""
+    let target;
 
-    if (!input.target):
-      target = caller
-    else:
-      target = input.target
-    end
+    target = !input.target ? caller : input.target
 
-    if (!balances[target]):
+    if (!balances[target]) {
       balances[target] = 0
-    end
+    }
 
     return {
-      "result": {
-        "target": target,
-        "ticker": ticker,
-        "balance": balances[target]
+      result: {
+        target,
+        ticker,
+        balance: balances[target]
       }
     }
-  end
-end
+  }
+}

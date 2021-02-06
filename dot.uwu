@@ -1,5 +1,0 @@
-fn handle(s,a):
-  let i = s.input
-end
-
-
