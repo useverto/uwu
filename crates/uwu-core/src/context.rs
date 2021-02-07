@@ -1,6 +1,5 @@
 use crate::scanner::Diagnostic;
 use crate::scope::Scope;
-use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct Context {
