@@ -4,7 +4,6 @@ use codespan_reporting::term;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
 use std::env;
 use std::fs;
-use swc_ecmascript::visit::Visit;
 use uwu::parser::Parser;
 use uwu::scanner::Scanner;
 

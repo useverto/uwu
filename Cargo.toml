@@ -3,3 +3,6 @@ members = [
     "./crates/uwu-core",
     "./crates/uwu-cli",
 ]
+exclude = [
+    "./crates/uwu-wasm",
+]
