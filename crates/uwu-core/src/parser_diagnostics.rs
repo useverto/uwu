@@ -1,23 +1,14 @@
+// Adopted from deno_lint's parser.rs
 use std::cell::RefCell;
 use std::error::Error;
 use std::fmt;
 use std::rc::Rc;
-use swc_common;
-use swc_common::errors::ColorConfig;
 use swc_common::errors::Diagnostic;
 use swc_common::errors::DiagnosticBuilder;
 use swc_common::errors::Emitter;
-use swc_common::errors::Handler;
-use swc_common::errors::HandlerFlags;
 use swc_common::sync::Lrc;
 use swc_common::FileName;
 use swc_common::SourceMap;
-use swc_ecmascript::ast::Program;
-use swc_ecmascript::parser::lexer::Lexer;
-use swc_ecmascript::parser::Capturing;
-use swc_ecmascript::parser::Parser;
-use swc_ecmascript::parser::StringInput;
-use swc_ecmascript::parser::Syntax;
 
 #[derive(Clone, Debug)]
 pub struct DiagnosticBuffer {
@@ -35,7 +26,7 @@ impl fmt::Display for DiagnosticBuffer {
 }
 
 impl DiagnosticBuffer {
-    pub(crate) fn from_swc_error(error_buffer: ErrorBuffer, source_map: Lrc<SourceMap>) -> Self {
+    pub fn from_swc_error(error_buffer: ErrorBuffer, source_map: Lrc<SourceMap>) -> Self {
         let s = error_buffer.0.borrow().clone();
 
         let diagnostics = s
@@ -76,44 +67,4 @@ impl Emitter for ErrorBuffer {
     fn emit(&mut self, db: &DiagnosticBuilder) {
         self.0.borrow_mut().push((**db).clone());
     }
-}
-
-pub fn parse(src: &str) -> Program {
-    let cm: Lrc<SourceMap> = Default::default();
-    let buffered_error = ErrorBuffer::new();
-
-    let handler = Handler::with_emitter_and_flags(
-        Box::new(buffered_error.clone()),
-        HandlerFlags {
-            dont_buffer_diagnostics: true,
-            can_emit_warnings: true,
-            ..Default::default()
-        },
-    );
-
-    let fm = cm.new_source_file(FileName::Custom("test.js".into()), src.into());
-
-    let lexer = Lexer::new(
-        Syntax::Es(Default::default()),
-        Default::default(),
-        StringInput::from(&*fm),
-        None,
-    );
-
-    let capturing = Capturing::new(lexer);
-
-    let mut parser = Parser::new_from(capturing);
-
-    for e in parser.take_errors() {
-        e.into_diagnostic(&handler).emit();
-    }
-
-    let module = parser
-        .parse_program()
-        .map_err(|e| {
-            e.into_diagnostic(&handler).emit();
-            DiagnosticBuffer::from_swc_error(buffered_error.clone(), cm)
-        })
-        .expect("Failed to parse module.");
-    module
 }

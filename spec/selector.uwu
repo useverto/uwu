@@ -1,2 +1,0 @@
-let hash = { "a": "b" }
-hash.a

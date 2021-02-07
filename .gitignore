@@ -17,9 +17,9 @@ Cargo.lock
 /target
 #Cargo.lock
 
-/wasm/pkg
-/wasm/pkg-node
-/wasm/target
+/crates/uwu-wasm/pkg
+/crates/uwu-wasm/pkg-node
+/crates/uwu-wasm/target
 
 # Discord Bot token
 /bot/token.txt
