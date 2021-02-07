@@ -1,0 +1,9 @@
+[package]
+name = "uwu_tests"
+version = "0.1.0"
+authors = ["littledivy <dj.srivastava23@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+uwu = { path = "../crates/uwu-core" }
+
