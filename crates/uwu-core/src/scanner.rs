@@ -12,14 +12,14 @@ use swc_ecmascript::{
     visit::{noop_visit_type, Node, Visit, VisitWith},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ScannerErrorKind {
     ComputedMemberExpr,
     ItemNotFound,
     ComputedCallExpr,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Diagnostic {
     pub kind: ScannerErrorKind,
     pub loc: (usize, usize),
@@ -29,6 +29,12 @@ pub struct Diagnostic {
 #[derive(Debug, Clone)]
 pub struct Scanner {
     context: Rc<RefCell<Context>>,
+}
+
+impl Diagnostic {
+    pub fn new(kind: ScannerErrorKind, loc: (usize, usize), msg: String) -> Self {
+        Self { kind, loc, msg }
+    }
 }
 
 impl Scanner {

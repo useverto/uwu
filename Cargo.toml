@@ -2,6 +2,7 @@
 members = [
     "./crates/uwu-core",
     "./crates/uwu-cli",
+    "./tests",
 ]
 exclude = [
     "./crates/uwu-wasm",
