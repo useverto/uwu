@@ -1,7 +1,7 @@
 use crate::context::Context;
 use std::cell::RefCell;
 use std::rc::Rc;
-use swc_common::{BytePos, Globals, Mark, SyntaxContext};
+use swc_common::{BytePos, Globals, Mark, Span, SyntaxContext};
 use swc_ecmascript::{
     ast::{
         AssignPatProp, BlockStmt, CallExpr, ClassDecl, ClassExpr, ClassProp, Expr, ExprOrSuper,
@@ -16,6 +16,7 @@ use swc_ecmascript::{
 pub enum ScannerErrorKind {
     ComputedMemberExpr,
     ItemNotFound,
+    ComputedCallExpr,
 }
 
 #[derive(Debug, Clone)]
@@ -55,9 +56,44 @@ impl Scanner {
                 Expr::Ident(ident) => {
                     self.check(&ident);
                 }
+                Expr::This(expr) => self.error_computed_expr(expr.span),
+                Expr::Array(_) => {}
+                Expr::Object(expr) => self.error_computed_expr(expr.span),
+                Expr::Fn(expr) => self.error_computed_expr(expr.function.span),
+                Expr::Unary(expr) => self.error_computed_expr(expr.span),
+                Expr::Update(expr) => self.error_computed_expr(expr.span),
+                Expr::Bin(expr) => self.error_computed_expr(expr.span),
+                Expr::Assign(expr) => self.error_computed_expr(expr.span),
+                Expr::Cond(expr) => self.error_computed_expr(expr.span),
+                Expr::Call(expr) => self.error_computed_expr(expr.span),
+                Expr::New(expr) => self.error_computed_expr(expr.span),
+                Expr::Seq(expr) => self.error_computed_expr(expr.span),
+                // Hmmm
+                Expr::Lit(_) => {}
+                Expr::Tpl(_) => {}
+                Expr::TaggedTpl(_) => {}
+                Expr::Arrow(expr) => self.error_computed_expr(expr.span),
+                Expr::Class(expr) => self.error_computed_expr(expr.class.span),
+                Expr::Yield(expr) => self.error_computed_expr(expr.span),
+                Expr::MetaProp(expr) => self.error_computed_expr(expr.prop.span),
+                Expr::Await(expr) => self.error_computed_expr(expr.span),
+                Expr::Paren(expr) => self.error_computed_expr(expr.span),
+                Expr::PrivateName(expr) => self.error_computed_expr(expr.span),
+                Expr::OptChain(expr) => self.error_computed_expr(expr.span),
+                Expr::Invalid(_) => {}
                 _ => {}
             }
         }
+    }
+
+    fn error_computed_expr(&mut self, span: Span) {
+        let BytePos(lo) = span.lo();
+        let BytePos(hi) = span.hi();
+        self.context.borrow_mut().diagnostics.push(Diagnostic {
+            kind: ScannerErrorKind::ComputedCallExpr,
+            loc: (lo as usize, hi as usize),
+            msg: "Computed call expressions are not allowed.".to_string(),
+        });
     }
 
     fn check_member_expr(&mut self, bin_expr: &MemberExpr) {
