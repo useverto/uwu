@@ -1,11 +1,12 @@
 use crate::context::Context;
 use std::cell::RefCell;
 use std::rc::Rc;
-use swc_common::BytePos;
+use swc_common::{BytePos, Globals, Mark, SyntaxContext};
 use swc_ecmascript::{
     ast::{
-        CallExpr, ClassExpr, Expr, ExprOrSuper, FnDecl, FnExpr, Function, Ident, MemberExpr, Pat,
-        Program, VarDecl,
+        AssignPatProp, BlockStmt, CallExpr, ClassDecl, ClassExpr, ClassProp, Expr, ExprOrSuper,
+        FnDecl, FnExpr, Function, Ident, MemberExpr, Param, Pat, Program, Prop, UnaryExpr, UnaryOp,
+        VarDecl,
     },
     utils::{find_ids, ident::IdentLike, Id},
     visit::{noop_visit_type, Node, Visit, VisitWith},
@@ -51,7 +52,10 @@ impl Scanner {
                     self.check_member_expr(&member_expr);
                     self.visit_exprorsuper(member_expr.obj, parent);
                 }
-                _ => (),
+                Expr::Ident(ident) => {
+                    self.check(&ident);
+                }
+                _ => {}
             }
         }
     }
@@ -67,16 +71,12 @@ impl Scanner {
             });
         }
     }
-}
 
-impl Visit for Scanner {
-    noop_visit_type!();
-    /// Implements scanning index/member expressions as callee call expressions.
-    fn visit_call_expr(&mut self, call_expr: &CallExpr, parent: &dyn Node) {
-        self.visit_exprorsuper(call_expr.callee.clone(), parent);
-    }
+    fn check(&mut self, ident: &Ident) {
+        if ident.sym == *"arguments" {
+            return;
+        }
 
-    fn visit_ident(&mut self, ident: &Ident, _parent: &dyn Node) {
         let mut ctx = self.context.borrow_mut();
         let BytePos(lo) = ident.span.lo();
         let BytePos(hi) = ident.span.hi();
@@ -87,6 +87,55 @@ impl Visit for Scanner {
                 msg: "Item not found in scope.".to_string(),
             });
         }
+    }
+}
+
+impl Visit for Scanner {
+    noop_visit_type!();
+    /// Implements scanning index/member expressions as callee call expressions.
+    fn visit_call_expr(&mut self, call_expr: &CallExpr, parent: &dyn Node) {
+        self.visit_exprorsuper(call_expr.callee.clone(), parent);
+    }
+
+    fn visit_unary_expr(&mut self, e: &UnaryExpr, _: &dyn Node) {
+        if e.op == UnaryOp::TypeOf {
+            return;
+        }
+
+        e.visit_children_with(self);
+    }
+
+    fn visit_expr(&mut self, e: &Expr, _: &dyn Node) {
+        e.visit_children_with(self);
+
+        if let Expr::Ident(ident) = e {
+            self.check(ident)
+        }
+    }
+
+    fn visit_class_prop(&mut self, p: &ClassProp, _: &dyn Node) {
+        p.value.visit_with(p, self)
+    }
+
+    fn visit_prop(&mut self, p: &Prop, _: &dyn Node) {
+        p.visit_children_with(self);
+
+        if let Prop::Shorthand(i) = &p {
+            self.check(i);
+        }
+    }
+
+    fn visit_pat(&mut self, p: &Pat, _: &dyn Node) {
+        if let Pat::Ident(i) = p {
+            self.check(i);
+        } else {
+            p.visit_children_with(self);
+        }
+    }
+
+    fn visit_assign_pat_prop(&mut self, p: &AssignPatProp, _: &dyn Node) {
+        self.check(&p.key);
+        p.value.visit_with(p, self);
     }
 
     // Adapted from https://github.com/denoland/deno_lint/blob/64232f8586a1c0c51a175ccd545344adf5d96def/src/scopes.rs#L159
@@ -139,6 +188,25 @@ impl Visit for Scanner {
         match &n.body {
             Some(s) => s.stmts.visit_with(n, self),
             None => {}
+        }
+    }
+
+    fn visit_class_decl(&mut self, n: &ClassDecl, _: &dyn Node) {
+        let mut ctx = self.context.borrow_mut();
+        ctx.scope.functions.push(n.ident.as_ref().to_string());
+        drop(ctx);
+        n.class.visit_with(n, self);
+    }
+
+    fn visit_block_stmt(&mut self, n: &BlockStmt, _: &dyn Node) {
+        n.stmts.visit_with(n, self);
+    }
+
+    fn visit_param(&mut self, p: &Param, _: &dyn Node) {
+        let ids: Vec<Id> = find_ids(&p.pat);
+        let mut ctx = self.context.borrow_mut();
+        for id in ids {
+            ctx.scope.vars.push(id.0.to_string());
         }
     }
 }

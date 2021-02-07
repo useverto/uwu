@@ -7,5 +7,7 @@ declared // Valid
 not_declared; // Invalid
 
 f() // Invalid
-function f() {}
+function f(a) { return a }
 f() // Valid
+
+eval // Invalid
