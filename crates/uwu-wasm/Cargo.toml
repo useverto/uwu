@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 wasm-bindgen = "0.2.70"
 wee_alloc = { version = "0.4.2", optional = true }
-uwu = { path = "../" }
+uwu = { path = "../uwu-core" }
 codespan-reporting = "0.11.0"
 
 [lib]

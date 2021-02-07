@@ -1,6 +1,0 @@
-let i = 0
-fn update(n):
-  i += n
-end
-
-update(10)
