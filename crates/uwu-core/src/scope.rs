@@ -1,52 +1,9 @@
-
-use swc_ecmascript::utils::Id;
-
-#[derive(Debug)]
-pub struct Var {
-  path: Vec<ScopeKind>,
-  kind: BindingKind,
-}
-
-impl Var {
-  /// Empty path means root scope.
-  #[allow(dead_code)]
-  pub fn path(&self) -> &[ScopeKind] {
-    &self.path
-  }
-
-  pub fn kind(&self) -> BindingKind {
-    self.kind
-  }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
-pub enum BindingKind {
-  Var,
-  Const,
-  Let,
-  Function,
-  Param,
-  Class,
-  CatchClause,
-  Import,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
-pub enum ScopeKind {
-  // Module,
-  Arrow,
-  Function,
-  Block,
-  Loop,
-  Class,
-  Switch,
-  With,
-  Catch,
-}
-
+// XXX: Please use swc_ecmascript::utils::Id or Ident
 #[derive(Debug, Clone)]
 pub struct Scope {
-    vars: HashMap<Id, Var>,
+    globals: Vec<String>,
+    pub vars: Vec<String>,
+    pub functions: Vec<String>,
 }
 
 impl Default for Scope {
@@ -57,14 +14,30 @@ impl Default for Scope {
 
 impl Scope {
     pub fn new() -> Self {
-        Self { vars: vec![] }
+        Self {
+            globals: vec![],
+            vars: vec![],
+            functions: vec![],
+        }
     }
 
     pub fn new_with_globals(globals: Vec<String>) -> Self {
-        Self { globals }
+        Self {
+            globals,
+            vars: vec![],
+            functions: vec![],
+        }
     }
 
-    pub fn has_global(&self, source: String) -> bool {
-        self.globals.contains(&source)
+    pub fn has_global(&self, ident: String) -> bool {
+        self.globals.contains(&ident)
+    }
+
+    pub fn has_fn(&self, ident: String) -> bool {
+        self.functions.contains(&ident)
+    }
+
+    pub fn contains(&self, ident: String) -> bool {
+        self.vars.contains(&ident) || self.functions.contains(&ident)
     }
 }
