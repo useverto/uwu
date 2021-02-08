@@ -7,7 +7,7 @@ In short, `uwu` strictly analyzes ECMAScript code and produces diagnostics.
 `uwu` is when you want to:
 
 * Prevent malicious code execution.
-* Scope arbitary code from it's outer enviornment.
+* Scope arbitary code from its outer enviornment.
 
 ### Usage
 
