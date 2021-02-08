@@ -6,7 +6,7 @@ use swc_ecmascript::{
     ast::{
         AssignPatProp, BlockStmt, CallExpr, ClassDecl, ClassExpr, ClassProp, Expr, ExprOrSuper,
         FnDecl, FnExpr, Function, Ident, MemberExpr, Param, Pat, Program, Prop, UnaryExpr, UnaryOp,
-        VarDecl,
+        VarDecl, VarDeclarator,
     },
     utils::{find_ids, ident::IdentLike, Id},
     visit::{noop_visit_type, Node, Visit, VisitWith},
@@ -178,6 +178,18 @@ impl Visit for Scanner {
     fn visit_assign_pat_prop(&mut self, p: &AssignPatProp, _: &dyn Node) {
         self.check(&p.key);
         p.value.visit_with(p, self);
+    }
+
+    /// Check declarator init expressions.
+    /// Example:
+    ///
+    /// let _ = (() => [eval])()[0];
+    ///         ^^^^^^^^^^^^^^ Computed call expressions are not allowed.
+    ///
+    fn visit_var_declarator(&mut self, n: &VarDeclarator, _parent: &dyn Node) {
+        if let Some(init) = &n.init {
+            init.visit_with(n, self);
+        }
     }
 
     // Adapted from https://github.com/denoland/deno_lint/blob/64232f8586a1c0c51a175ccd545344adf5d96def/src/scopes.rs#L159
