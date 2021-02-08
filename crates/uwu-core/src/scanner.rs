@@ -1,4 +1,6 @@
 use crate::context::Context;
+#[cfg(feature = "serde_json")]
+use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::rc::Rc;
 use swc_common::{BytePos, Globals, Mark, Span, SyntaxContext};
@@ -13,6 +15,7 @@ use swc_ecmascript::{
 };
 
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde_json", derive(Serialize, Deserialize))]
 pub enum ScannerErrorKind {
     ComputedMemberExpr,
     ItemNotFound,
@@ -20,6 +23,7 @@ pub enum ScannerErrorKind {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde_json", derive(Serialize, Deserialize))]
 pub struct Diagnostic {
     pub kind: ScannerErrorKind,
     pub loc: (usize, usize),

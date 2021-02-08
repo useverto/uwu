@@ -4,8 +4,14 @@ version = "0.1.0"
 authors = ["littledivy <dj.srivastava23@gmail.com>"]
 edition = "2018"
 
+[features]
+serde_json = ["serde"]
+
 [dependencies]
 codespan-reporting = "0.11.0"
 swc_common = { version = "0.10.0", features = ["tty-emitter"] }
 swc_ecmascript = { version = "0.18.4", features = ["parser", "utils", "visit"] }
 swc_atoms = "0.2.5"
+# feature gated dependencies
+serde = { version = "1.0.123", optional = true }
+
