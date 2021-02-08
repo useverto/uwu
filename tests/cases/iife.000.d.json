@@ -1,0 +1,7 @@
+[
+    {
+        "kind": "ComputedCallExpr",
+        "loc": [64, 151],
+        "msg": "Computed call expressions are not allowed."
+    }
+]

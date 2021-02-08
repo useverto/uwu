@@ -5,5 +5,7 @@ authors = ["littledivy <dj.srivastava23@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-uwu = { path = "../crates/uwu-core" }
+uwu = { path = "../crates/uwu-core", features = ["serde_json"] }
 
+[dev-dependencies]
+serde_json = { version = "1.0.62" }
