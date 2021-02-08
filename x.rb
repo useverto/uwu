@@ -112,8 +112,8 @@ subcommands[command].order!
 
 # trigger wasm builds
 def build_wasm
-    exec_cmd("wasm-pack build --target nodejs --release -d pkg-node", "wasm")
-    exec_cmd("wasm-pack build --target web --release -d pkg", "wasm")
+    exec_cmd("wasm-pack build --target nodejs --release -d pkg-node", "crates/uwu-wasm")
+    exec_cmd("wasm-pack build --target web --release -d pkg", "crates/uwu-wasm")
 end
 
 def build_cli
