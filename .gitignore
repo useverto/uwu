@@ -23,3 +23,7 @@ Cargo.lock
 
 # Discord Bot token
 /bot/token.txt
+
+
+/node_modules/
+/dist/
