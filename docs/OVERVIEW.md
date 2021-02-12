@@ -18,13 +18,13 @@ npm i --save @useverto/uwu
 ```
 
 ```js
-import { scan } from "@useverto/uwu";
+import { scan, GLOBALS } from "@useverto/uwu";
 
 // Unknown code.
 let input = `window["local" + "Storage"].getItem("apiKey");`
 
 // Scan, collect diagnostics.
-let diagnostics = scan(input);
+let diagnostics = scan(input, GLOBALS);
 // If no diagnostics, evalutate code...
 if(diagnostics.length < 0) {
   let execute = new Function(input);
@@ -53,7 +53,7 @@ To prevent possible malicious code to be executed on client engines, you can sca
 
 ```js
 // your_dApp/contract_handler.ts
-import { scanTx } from "@useverto/uwu";
+import { scanTx, SmartWeaveGLOBALS } from "@useverto/uwu";
 
-let diagnostics = scanTx(contractID);
+let diagnostics = scanTx(contractID, SmartWeaveGLOBALS);
 ```
