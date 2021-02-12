@@ -38,6 +38,6 @@ impl Scope {
     }
 
     pub fn contains(&self, ident: String) -> bool {
-        self.vars.contains(&ident) || self.functions.contains(&ident)
+        self.vars.contains(&ident) || self.functions.contains(&ident) || self.globals.contains(&ident)
     }
 }
