@@ -3,14 +3,14 @@ use crate::context::Context;
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::rc::Rc;
-use swc_common::{BytePos, Globals, Mark, Span, SyntaxContext};
+use swc_common::{BytePos, Span};
 use swc_ecmascript::{
     ast::{
         AssignPatProp, BlockStmt, CallExpr, ClassDecl, ClassExpr, ClassProp, Expr, ExprOrSuper,
         FnDecl, FnExpr, Function, Ident, MemberExpr, Param, Pat, Program, Prop, UnaryExpr, UnaryOp,
         VarDecl, VarDeclarator,
     },
-    utils::{find_ids, ident::IdentLike, Id},
+    utils::{find_ids, Id},
     visit::{noop_visit_type, Node, Visit, VisitWith},
 };
 

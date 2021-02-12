@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use std::io::{Error, ErrorKind};
     use uwu::parser::Parser;
     use uwu::scanner::{Diagnostic, Scanner, ScannerErrorKind};
 
