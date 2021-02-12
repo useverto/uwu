@@ -1,6 +1,17 @@
 import Arweave from "arweave";
 import Transaction from "arweave/node/lib/transaction";
 
+/**
+ * List of verified inbuilt JavaScript functions.
+ * TODO: expand this list...
+ */
+export const GLOBALS: Scope = ["Math", "parseInt", "parseFloat"];
+
+/**
+ * Smartweave contract API.
+ */
+export const SmartWeaveGLOBALS: Scope = [...GLOBALS, "Smartweave"];
+
 let _scan: (source: string) => string;
 
 if(typeof window == "undefined") {
