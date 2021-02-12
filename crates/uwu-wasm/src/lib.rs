@@ -6,6 +6,7 @@ use codespan_reporting::term::{self, ColorArg};
 use std::io::{self, Write};
 use uwu::parser::Parser;
 use uwu::scanner::Scanner;
+use uwu::scope::Scope;
 use wasm_bindgen::prelude::*;
 
 #[cfg(feature = "wee_alloc")]
@@ -13,10 +14,11 @@ use wasm_bindgen::prelude::*;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen(catch)]
-pub fn scan(source: String) -> Result<String, JsValue> {
+pub fn scan(source: String, globals: &JsValue) -> Result<String, JsValue> {
+    let globals: Vec<String> = globals.into_serde().unwrap();
     let config = codespan_reporting::term::Config::default();
     let mut buffer = Buffer::no_color();
-    let mut scanner = Scanner::new();
+    let mut scanner = Scanner::from_scope(Scope::new_with_globals(globals));
     let ast = Parser::new("<repl>", &source).parse();
     scanner.scan(ast);
     let diagnostics = scanner.diagnostics();

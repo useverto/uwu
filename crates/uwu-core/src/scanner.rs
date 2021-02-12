@@ -1,4 +1,4 @@
-use crate::context::Context;
+use crate::{context::Context, scope::Scope};
 #[cfg(feature = "serde_json")]
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
@@ -45,6 +45,12 @@ impl Scanner {
     pub fn new() -> Self {
         Self {
             context: Rc::new(RefCell::new(Default::default())),
+        }
+    }
+
+    pub fn from_scope(scope: Scope) -> Self {
+        Self {
+            context: Rc::new(RefCell::new(Context::new(scope)))
         }
     }
 
